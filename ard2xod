@@ -1,0 +1,160 @@
+#!/usr/bin/env perl
+# Make a XOD low-level library automatically from a Arduino IDE library
+# --- command [options] $arduino-library-directory
+
+use strict; use warnings; no warnings 'uninitialized'; use 5.012; no if ($^V ge v5.18.0), warnings => 'experimental::smartmatch';
+use Carp; $SIG{__DIE__} = sub { Carp::confess @_ };
+use Data::Dumper;
+use File::Basename qw(basename dirname);
+use JSON;
+
+use lib 'bin';
+use awgrover::Getopt;
+
+# FIXME: hard code xod location
+my $xoddir = "/home/".$ENV{'USER'}."/xod/__lib__"; # can we ask xod?
+my $xodc = "/home/awgrover/dev/thirdparty/xod/xodc"; # installed xodc is broken, use built
+
+my $gSwitches;
+
+my %commands = (
+    # Parts
+    library => [
+        ''=>'Make the library dir/properties',
+        'help|h|H'=>'this',
+        ],
+    unpack => [
+        ''=>'Unpack a .xodball into /tmp/xodball/* for further processing',
+        'help|h|H'=>'this',
+        ],
+    constructor => [
+        ''=>'Make the constructor nodes',
+        'help|h|H'=>'this',
+        ],
+    );
+
+sub fail_with_help {
+    my ($msg, $command) = @_;
+    say STDERR $msg;
+    while(my ($c,$opdef) = each(%commands)) {
+        say STDERR $c;
+        say STDERR "    FIXME: and options, do getopt w/--help";
+        }
+    exit 1;
+    }
+
+sub ard_lib_property {
+    # get the value from the .properties
+    my ($ard, $property) = @_;
+    state %properties;
+
+    $properties{ $ard } ||= do {
+        my %p;
+
+        my $ph = IO::File->new($ard . "/library.properties", 'r') or die($!);
+        while (<$ph>) {
+            my ($key,$value) = /^([^=]+)=(.*)/;
+            $p{$key} = $value;
+            }
+        \%p;
+        };
+
+    $properties{ $ard }->{$property};
+    }
+
+sub ard_lib_name {      
+    # from a directory
+    my ($ard) = @_;
+    
+    # could cache
+    ard_lib_property($ard,'author') . "/" . basename($ard);
+    }
+
+sub xodball2tmp {
+  # xodball to unpacked tmp dir
+  # check for sanity yourself
+  my ($xodball) = @_;
+  my $leaf = basename($xodball,'.xodball');
+
+  my $path = "/tmp/xodball";
+  # FIXME if lib, put in $author/$name
+  $path .= "/".$leaf;
+
+  $path;
+  }
+
+sub do_unpack {
+  # --- $xodprojectdir # > /tmp/
+  fail_with_help("Expected a .xodball",'unpack') if !@ARGV;
+
+  foreach my $xod (@ARGV) {
+
+    if (-d $xod || !-e $xod || (basename($xod) !~ /\.xodball$/) ) {
+      say STDERR "# Expected a .xodball, but it's not: $xod";
+      exit 1;
+      }
+    
+    my $xodtmp = xodball2tmp( $xod );
+    say "INTO $xodtmp";
+    system('mkdir','-p', $xodtmp) and die;
+    say( join " ", ($xodc,'unpack', $xod, $xodtmp."/x"));
+    system($xodc,'unpack', $xod, $xodtmp."/x") and die;
+    say "# unpacked: $xodtmp";
+    }
+  }
+
+sub do_library {
+    # make the library bits
+    # --- $ardlib # > $xoddir/$author/$arddir
+
+    my $any;
+    foreach my $ard (@ARGV) { 
+      _do_library($ard);
+      $any = 1;
+      }
+    fail_with_help("# Expected at least 1 arduino library", 'library') if !$any;
+    }
+
+sub _do_library {
+    my ($ard) = @_;
+
+    if (! -d $ard) {
+        say STDERR "# Expected an Arduino library directory, but it's not a directory: $ard";
+        exit 1;
+        }
+
+    # Dir
+    my $subdir = "" . $xoddir;
+    $subdir .= "/" . ard_lib_name($ard);
+    system('mkdir','-p', $subdir) and die;
+    say "made $subdir";
+
+    # project.xod
+    my %xod_project = (
+        name => ard_lib_property($ard,'name'),
+        description => ard_lib_property($ard, 'sentence') . "\n" . ard_lib_property($ard, 'paragraph'),
+        version => ard_lib_property($ard,'version'),
+        );
+
+    # FIXME: replace keys rather than overwriting all keys
+    my $ph = IO::File->new("$subdir/project.xod",'w') or die($!);
+    print $ph JSON->new->pretty->encode(\%xod_project);
+    say "wrote $subdir/project.xod";
+
+    }
+
+sub main {
+    my $command = shift @ARGV;
+    fail_with_help( "# Expected a command", undef ) if !defined($command);
+
+    my $whichopts = $commands{$command};
+    fail_with_help( "# Expected a command", undef ) if !defined($whichopts);
+
+    $gSwitches = awgrover::Getopt::GetOptions( @$whichopts );
+
+    no strict 'refs';
+    &{"do_".$command}();
+    use strict 'refs';
+    }
+
+main();
