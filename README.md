@@ -52,7 +52,7 @@ File `~/Arduino/libraries/Adafruit_NeoPixel/library.properties `
     architectures=*
 
 
-File `~/xod/__lib__/Adafruit/Adafruit_NeoPixel/project.xod`:
+File `~/xod/__lib__/adafruit/adafruit_neopixel/project.xod` (nb. lower case):
 
     {
        "name" : "Adafruit NeoPixel",
@@ -60,13 +60,17 @@ File `~/xod/__lib__/Adafruit/Adafruit_NeoPixel/project.xod`:
        "version" : "1.1.7"
     }
 
+Deduce license?
+
 ## Libary Class = Node w/State and Bus
 
-Most libraries are built around a c++ class. XOD now has "state" for the c++ nodes, and "bus" nodes. This maps better to the class/instance pattern of typical Arduino IDE libraries.
+Most libraries are built around a c++ class. XOD now has "state" for the c++ nodes; and "bus" nodes. This maps better to the class/instance pattern of typical Arduino IDE libraries.
 
 ### Parsing
 
 LLVM/Clang has c++ parser that is [externally accessible](http://clang.llvm.org/docs/IntroductionToTheClangAST.html), that should give us the ability to pick out the class, constructors, and public methods of an Arduino IDE library. The clang AST interface has [issues](https://foonathan.net/blog/2017/04/20/cppast.html). Maybe use [python cmonster](https://github.com/axw/cmonster), or [cppast](https://foonathan.net/blog/2017/04/20/cppast.html). 
+
+Getting the full AST is problematic. However, several language bindings to the "index" ast are available, and that seems sufficient for this proof. Being able to parse the actual .cpp code would allow detecting delay(), Serial.x, etc.
 
 - For each constructor:
 - [ ] Turn the main class into a patch $classname (+ '2' for 2nd etc.)
@@ -74,8 +78,17 @@ LLVM/Clang has c++ parser that is [externally accessible](http://clang.llvm.org/
 - [ ] that holds the state,
 - [ ] has constructor args as inputs of right type, 
 - [ ] and has a "self" output. (we need to know that xod type...)
+-- for first constructor, the patch name is the xod-type: @/adafruit-neopixel, aka @/output-adafruit-neopixel
+-- second constructors get a "self" output of that type, not xod-self
 
 `./ard2xod constructor /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
+
+- For each public method
+- [ ] "this" is `"type": "@/input-adafruit-neopixel"`
+- [ ] return this is `"type": "@/output-adafruit-neopixel"`
+
+- For each public attribute
+- [ ] "this" is `"type": "@/input-adafruit-neopixel"`
 
 ### Neopixel example
 

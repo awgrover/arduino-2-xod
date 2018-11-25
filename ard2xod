@@ -12,7 +12,7 @@ use lib 'bin';
 use awgrover::Getopt;
 
 my $XODRowSize = 102; # seems to be every 102 pixels
-my $XODColSize = 32; # seems to be
+my $XODColSize = 34; # seems to be
 
 # FIXME: hard code xod location
 my $xoddir = "/home/".$ENV{'USER'}."/xod/__lib__"; # can we ask xod?
@@ -150,11 +150,17 @@ sub do_constructor {
   my $class_name = $cons_patch_name;
   $cons_patch_name = lc $cons_patch_name;
   $cons_patch_name =~ s/_/-/g;
+
+  # my $type_name = basename($xod) . "/" . $cons_patch_name;
+  my $type_base = $xod =~ /\/__lib__\// ? ( dirname($xod) . "/" . basename($xod) . "/" . $cons_patch_name ) : '@';
+  my $type_name_output = $type_base . "/output-" . $cons_patch_name;
+  my $type_name_input = $type_base . "/input-" . $cons_patch_name;
   
   my $ct = 0;
+  say "Constructor count ".@$constructor_ast;
   foreach my $cons (@$constructor_ast) {
-    my $thisname = $cons_patch_name . ($ct==0 ? '' : $ct); 
-    say "Const patch name: $thisname";
+    my $this_constructor_name = $cons_patch_name . ($ct==0 ? '' : $ct); 
+    say "Const patch name: $this_constructor_name";
 
     my %xodp; # the .xodp structure for a constructor patch
     $xodp{'description'} = "constructor"; # can we do better?
@@ -162,6 +168,7 @@ sub do_constructor {
     my $args_ast = find_all(0, $cons, \&p_toplevel, p_node_type('PARM_DECL'));
     say "  parms ",dump_shallow($_) foreach @$args_ast;
 
+    # FIXME: a const table
     my %cpp2xod_type = (
       # we could handle * types with more info here:
       'TypeKind.INT:4' => 'xod/patch-nodes/input-number',
@@ -194,19 +201,32 @@ sub do_constructor {
     say "constructor (",join(", ", map {$_->[0]} @inputs),")";
     add_nodes(\%xodp, @inputs);
     add_nodes(\%xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
-    add_nodes(\%xodp, [$cons_patch_name => 'xod/patch-nodes/output-self']);
+    if ($ct == 0) {
+      add_nodes(\%xodp, [$cons_patch_name => 'xod/patch-nodes/output-self']); # self creates a type using patch-name
+      }
+    else {
+      add_nodes(\%xodp, [$cons_patch_name => $type_name_output] );
+      }
 
     say "Patch ",Dumper(\%xodp);
-    die "make patch";
-    say "make patch $xod/$thisname.xodp...";
-    my $xh = IO::File->new( "$xod/$thisname/patch.xodp", 'w' ) or die($!);
-    write_patch( "$xod/$thisname/patch.xodp", \%xodp );
+    write_patch( "$xod/$this_constructor_name/patch.xodp", \%xodp );
     
     #make .cpp from template
 
     $ct += 1;
     }
+  say "Made $ct constructor patches";
   }
+
+sub write_patch {
+  my ( $fname, $xodp ) = @_;
+  say "make patch $fname...";
+  system('mkdir','-p', dirname($fname) ) and die;
+  my $xh = IO::File->new( $fname, 'w' ) or die($!);
+  print $xh JSON->new->pretty->encode($xodp);
+  $xh->close;
+  }
+
 
 sub add_nodes {
   my ($xodp, @inputs) = @_;
@@ -220,18 +240,18 @@ sub add_nodes {
   my $nodes = $xodp->{'nodes'};
 
   my $row_y = (($nodes->[-1] || {})->{'position'} || {})->{'y'};
-  $row_y = defined($row_y) ? $row_y + $XODRowSize : 0;
+  $row_y = defined($row_y) ? $row_y + $XODRowSize : $XODRowSize; # start not in corner
   say "Row ",$row_y/$XODRowSize;
 
   #say "inputs; ",Dumper(\@inputs);
-  my $x = 0;
-  my $bound_id = next_xod_id(); # boundValues => { $bound_id => ct } for each node
+  my $x = 2 * $XODColSize; # start not in corner
+  #my $bound_id = next_xod_id(); # boundValues => { $bound_id => ct } for each node
   my $in_ct = 0;
   foreach my $nt (@inputs) {
     my ($name,$type) = @$nt;
 
     my %node;
-    $node{'boundValues'} = { $bound_id => $in_ct };
+    #$node{'boundValues'} = { $bound_id => $in_ct };
     $node{'id'} = next_xod_id();
     $node{'label'} = $name if $name; # some nodes have no name, e.g. not-implemented-in-xod
     $node{'type'} = $type;
@@ -240,7 +260,7 @@ sub add_nodes {
     
     push @$nodes, \%node;
 
-    $x += $XODColSize;
+    $x += 2 * $XODColSize;
     $in_ct += 1;
     }
   }
@@ -336,7 +356,7 @@ sub _do_library {
 
     # Dir
     my $subdir = "" . $xoddir;
-    $subdir .= "/" . ard_lib_name($ard);
+    $subdir .= "/" . lc(ard_lib_name($ard)); # xod needs lower case names
     system('mkdir','-p', $subdir) and die;
     say "made $subdir";
 
