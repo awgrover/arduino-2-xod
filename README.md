@@ -30,7 +30,9 @@ How would you handle "asynch" actions?
 - [x] Use the `author` from the Arduino IDE `library.properties`
 - [x] Use the directory name as the Arduino IDE library (so it's parallel with Arduino)
 - [x] Create a new XOD project `~/xod/__lib__/$author/$directory`
+-- restricting name to 0-9a-z-
 - [x] Other information from the `library.properties` goes in `project.xod`
+- [x] shows up in xod
 
 `./ard2xod library /home/awgrover/Arduino/libraries/Adafruit_NeoPixel`
 
@@ -50,7 +52,6 @@ File `~/Arduino/libraries/Adafruit_NeoPixel/library.properties `
     category=Display
     url=https://github.com/adafruit/Adafruit_NeoPixel
     architectures=*
-
 
 File `~/xod/__lib__/adafruit/adafruit_neopixel/project.xod` (nb. lower case):
 
@@ -73,13 +74,14 @@ LLVM/Clang has c++ parser that is [externally accessible](http://clang.llvm.org/
 Getting the full AST is problematic. However, several language bindings to the "index" ast are available, and that seems sufficient for this proof. Being able to parse the actual .cpp code would allow detecting delay(), Serial.x, etc.
 
 - For each constructor:
-- [ ] Turn the main class into a patch $classname (+ '2' for 2nd etc.)
+- [x] Turn the main class into a patch $classname (+ '2' for 2nd etc.)
 -- patches are lower case, "-" only
-- [ ] that holds the state,
-- [ ] has constructor args as inputs of right type, 
-- [ ] and has a "self" output. (we need to know that xod type...)
+- [x] has constructor args as inputs of right type, 
+- [x] and has a "self" output. (we need to know that xod type...)
 -- for first constructor, the patch name is the xod-type: @/adafruit-neopixel, aka @/output-adafruit-neopixel
 -- second constructors get a "self" output of that type, not xod-self
+- with a .cpp
+-- [ ] that holds the state
 
 `./ard2xod constructor /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
 

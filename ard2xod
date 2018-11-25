@@ -67,12 +67,16 @@ sub ard_lib_property {
     $properties{ $ard }->{$property};
     }
 
-sub ard_lib_name {      
-    # from a directory
+sub ard_lib_name {
+    # from a directory and library_properties.author
+    # -> good xod name
     my ($ard) = @_;
     
     # could cache
-    ard_lib_property($ard,'author') . "/" . basename($ard);
+    my $lib_name = lc( ard_lib_property($ard,'author') . "/" . basename($ard) );
+    $lib_name =~ s/_/-/g;
+    $lib_name =~ s/[^0-9a-z\/-]//g;
+    $lib_name;
     }
 
 sub xodball2tmp {
@@ -151,8 +155,7 @@ sub do_constructor {
   $cons_patch_name = lc $cons_patch_name;
   $cons_patch_name =~ s/_/-/g;
 
-  # my $type_name = basename($xod) . "/" . $cons_patch_name;
-  my $type_base = $xod =~ /\/__lib__\// ? ( dirname($xod) . "/" . basename($xod) . "/" . $cons_patch_name ) : '@';
+  my $type_base = $xod =~ /\/__lib__\// ? ( basename(dirname($xod)) . "/" . basename($xod) ) : '@';
   my $type_name_output = $type_base . "/output-" . $cons_patch_name;
   my $type_name_input = $type_base . "/input-" . $cons_patch_name;
   
@@ -245,13 +248,11 @@ sub add_nodes {
 
   #say "inputs; ",Dumper(\@inputs);
   my $x = 2 * $XODColSize; # start not in corner
-  #my $bound_id = next_xod_id(); # boundValues => { $bound_id => ct } for each node
   my $in_ct = 0;
   foreach my $nt (@inputs) {
     my ($name,$type) = @$nt;
 
     my %node;
-    #$node{'boundValues'} = { $bound_id => $in_ct };
     $node{'id'} = next_xod_id();
     $node{'label'} = $name if $name; # some nodes have no name, e.g. not-implemented-in-xod
     $node{'type'} = $type;
@@ -356,12 +357,13 @@ sub _do_library {
 
     # Dir
     my $subdir = "" . $xoddir;
-    $subdir .= "/" . lc(ard_lib_name($ard)); # xod needs lower case names
+    $subdir .= "/" . ard_lib_name($ard);
     system('mkdir','-p', $subdir) and die;
     say "made $subdir";
 
     # project.xod
     my %xod_project = (
+        authors => [ grep {$_} (ard_lib_property($ard, 'author'), ard_lib_property($ard, 'maintainer')) ],
         name => ard_lib_property($ard,'name'),
         description => ard_lib_property($ard, 'sentence') . "\n" . ard_lib_property($ard, 'paragraph'),
         version => ard_lib_property($ard,'version'),
