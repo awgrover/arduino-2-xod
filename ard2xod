@@ -7,6 +7,7 @@ use Carp; $SIG{__DIE__} = sub { Carp::confess @_ };
 use Data::Dumper;
 use File::Basename qw(basename dirname);
 use JSON;
+use Text::Template; # it was there
 
 use lib 'bin';
 use awgrover::Getopt;
@@ -18,6 +19,56 @@ my $XODColSize = 34; # seems to be
 my $xoddir = "/home/".$ENV{'USER'}."/xod/__lib__"; # can we ask xod?
 my $xodc = "/home/awgrover/dev/thirdparty/xod/xodc"; # installed xodc is broken, use built
 
+# Types we know how to translate to xod
+# (plus the "class" type of interest of course)
+my %cpp2xod_type = (
+  # we could handle * types with more info here:
+  'TypeKind.INT:4' => 'xod/patch-nodes/input-number',
+  'TypeKind.INT:2' => 'xod/patch-nodes/input-number',
+  'TypeKind.INT:1' => 'xod/patch-nodes/input-number',
+  bool => 'xod/patch-nodes/input-boolean',
+  );
+
+# A .cpp for constructors looks like this:
+my $cpp_constructor = <<'EOS'; # use {% ... %} interpolations
+#pragma XOD require "{% $arduino{'github_url'} %}"
+
+// Include C++ library:
+{{#global}}
+#include <{% $arduino{'.h'} %}>
+{{/global}}
+
+// Our namespace should be: {% $namespace %}
+// Reserve the space for the object. You can have only 1 object of this class
+// FIXME: to have more, just new and add to a list
+struct State {
+  uint8_t mem[sizeof({% $arduino{'classname'} %})];
+  };
+using Type = {% $arduino{'classname'} %}*; // 'Type' is assumed by xod code-generator
+
+{{ GENERATED_CODE }}
+
+void evaluate(Context ctx) {
+  // It should be evaluated only once on the first (setup) transaction
+  if (!isSettingUp()) return; // FIXME: relax this?
+
+  auto state = getState(ctx);
+
+  // var names are valid c++ because we got them from the arglist of the c++ constructor
+  {% 
+  our @args;
+  foreach my $arg ( @{$constructor{'arguments'} } ) {
+    $OUT .= "auto ".$arg->{'name'}." = getValue<input_".$arg->{'name'}."}>; // ".$arg->{'type'} ."\n  ";
+    push @args, $arg->{'name'};
+  } 
+  %}
+
+  Type object = new (state->mem) {% $arduino{'classname'} %}( {% join ", ", @args; %} );
+
+  emitValue<output_{% $typename %}>(ctx, object);
+}
+EOS
+
 my $gSwitches;
 
 my %commands = (
@@ -28,6 +79,10 @@ my %commands = (
         ],
     constructor => [ # --- ardlibdir xod-proj-dir # see output of 'library' for xod-proj_dir
         ''=>'Make the constructor nodes',
+        'help|h|H'=>'this',
+        ],
+    methods => [ # --- ardlibdir xod-proj-dir # see output of 'library' for xod-proj_dir
+        ''=>'Make the public method nodes',
         'help|h|H'=>'this',
         ],
     # util
@@ -47,6 +102,15 @@ sub fail_with_help {
         }
     exit 1;
     }
+
+sub ard_dot_h {
+  my ($ard) = @_;
+  # FIXME: could cache it
+  my $fname = basename($ard) . ".h";
+  my $path = "$ard/$fname";
+  die "Expected the .h '$fname' in $ard" if (!-e $path);
+  $path;
+  }
 
 sub ard_lib_property {
     # get the value from the .properties
@@ -152,12 +216,13 @@ sub do_constructor {
   my $cons_patch_name = $class_ast->{'text'} or die("No {'text'} in the class node");
   die "Don't know how to make xod project name safely from '$cons_patch_name'" if $cons_patch_name =~ /[^A-Z0-9a-z_]/;
   my $class_name = $cons_patch_name;
-  $cons_patch_name = lc $cons_patch_name;
-  $cons_patch_name =~ s/_/-/g;
+  $cons_patch_name = lc $cons_patch_name; # for xod stuff
+  my $cpp_patch_name = $cons_patch_name; # we want _
+  $cons_patch_name =~ s/_/-/g; # name wants -
 
   my $type_base = $xod =~ /\/__lib__\// ? ( basename(dirname($xod)) . "/" . basename($xod) ) : '@';
-  my $type_name_output = $type_base . "/output-" . $cons_patch_name;
-  my $type_name_input = $type_base . "/input-" . $cons_patch_name;
+  my $type_name_output = $type_base . "/output-" . $cpp_patch_name;
+  my $type_name_input = $type_base . "/input-" . $cpp_patch_name;
   
   my $ct = 0;
   say "Constructor count ".@$constructor_ast;
@@ -170,15 +235,6 @@ sub do_constructor {
 
     my $args_ast = find_all(0, $cons, \&p_toplevel, p_node_type('PARM_DECL'));
     say "  parms ",dump_shallow($_) foreach @$args_ast;
-
-    # FIXME: a const table
-    my %cpp2xod_type = (
-      # we could handle * types with more info here:
-      'TypeKind.INT:4' => 'xod/patch-nodes/input-number',
-      'TypeKind.INT:2' => 'xod/patch-nodes/input-number',
-      'TypeKind.INT:1' => 'xod/patch-nodes/input-number',
-      bool => 'xod/patch-nodes/input-boolean',
-      );
 
     my @inputs; # [ $name, $xodtypename ]
     my @saw; # for error message
@@ -212,13 +268,49 @@ sub do_constructor {
       }
 
     say "Patch ",Dumper(\%xodp);
-    write_patch( "$xod/$this_constructor_name/patch.xodp", \%xodp );
+    write_patch( "$xod/$this_constructor_name/patch.xodp", \%xodp);
     
+    my $namespace = ard_lib_name($ard) . "__" . $cpp_patch_name;
+    $namespace =~ s/\//__/g;
+    write_constructor_cpp("$xod/$this_constructor_name/patch.cpp", ard_dot_h($ard), $class_name, \@inputs, $cpp_patch_name, $namespace );
     #make .cpp from template
 
     $ct += 1;
     }
   say "Made $ct constructor patches";
+  }
+
+sub write_constructor_cpp {
+  my ($fname, $dot_h, $class_name, $inputs, $xod_type_name, $namespace) = @_;
+
+  my $template = Text::Template->new(
+    TYPE => 'STRING', 
+    SOURCE => $cpp_constructor,
+    DELIMITERS => ['{%', '%}']
+    );
+  say "## inputs ",Dumper($inputs);
+
+  my %data = (
+    arduino => {
+      github_url => "**need github url**",
+      '.h' => basename($dot_h),
+      classname => $class_name,
+      },
+    constructor => {
+      arguments => [
+        map { { name => $_->[0], type => $_->[1] } } @$inputs # FIXME: use actual type
+        ],
+      },
+    namespace => $namespace,
+    typename => $xod_type_name,
+    );
+  say "Data: ",Dumper(\%data);
+
+  my $cpp = $template->fill_in(HASH => \%data);
+  my $fh = IO::File->new( $fname, 'w') or die($!);
+  print $fh $cpp;
+  $fh->close;
+  say "Wrote $fname";
   }
 
 sub write_patch {

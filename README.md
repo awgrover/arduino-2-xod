@@ -80,14 +80,16 @@ Getting the full AST is problematic. However, several language bindings to the "
 - [x] and has a "self" output. (we need to know that xod type...)
 -- for first constructor, the patch name is the xod-type: @/adafruit-neopixel, aka @/output-adafruit-neopixel
 -- second constructors get a "self" output of that type, not xod-self
-- with a .cpp
--- [ ] that holds the state
+- with a .cpp   
+- [ ] that holds the state
 
 `./ard2xod constructor /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
 
 - For each public method
 - [ ] "this" is `"type": "@/input-adafruit-neopixel"`
 - [ ] return this is `"type": "@/output-adafruit-neopixel"`
+
+./ard2xod methods /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
 
 - For each public attribute
 - [ ] "this" is `"type": "@/input-adafruit-neopixel"`
