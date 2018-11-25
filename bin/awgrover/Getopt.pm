@@ -212,6 +212,13 @@ sub GetCLI
 	return join(" ",@switches);
 	}
 
+sub xprintSwitchHelp {
+  # Simpler interface, badly named
+  my (%def) = @_;
+	my $helpFirstLine=''; #delete $def{''};
+  printSwitchHelp($helpFirstLine, %def);
+  }
+
 sub printSwitchHelp
 	{
 	my $helpFirstLine=shift;
@@ -221,9 +228,8 @@ sub printSwitchHelp
 	my $switchDef;
 	foreach $switchDef (sort keys %switchDefinitions)
 		{
-		awgrover::Report->PrintLine("   ","-".$switchDef,$switchDefinitions{$switchDef});
+		print("   ","-".$switchDef,$switchDefinitions{$switchDef},"\n");
 		}
-	awgrover::Report->Flush;
 	}
 
 1;	

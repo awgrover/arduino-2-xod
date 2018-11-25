@@ -32,6 +32,8 @@ How would you handle "asynch" actions?
 - [x] Create a new XOD project `~/xod/__lib__/$author/$directory`
 - [x] Other information from the `library.properties` goes in `project.xod`
 
+`./ard2xod library /home/awgrover/Arduino/libraries/Adafruit_NeoPixel`
+
 ### Neopixel example
 
 * Arduino IDE lib: `~/Arduino/libraries/Adafruit_NeoPixel`
@@ -69,7 +71,11 @@ LLVM/Clang has c++ parser that is [externally accessible](http://clang.llvm.org/
 - For each constructor:
 - [ ] Turn the main class into a patch $classname (+ '2' for 2nd etc.)
 -- patches are lower case, "-" only
-- [ ] that holds the state, and has a "bus" output.
+- [ ] that holds the state,
+- [ ] has constructor args as inputs of right type, 
+- [ ] and has a "self" output. (we need to know that xod type...)
+
+`./ard2xod constructor /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
 
 ### Neopixel example
 
@@ -126,4 +132,5 @@ To make this usable by a normal person, there should be some automation for gett
 * How can we get the license? Via the 'url' key?
 * While "importing" a library, or just after, let the user rename arguments and types (e.g. "uint_16 p" to "port port")
 * Fixup code with with options like "once only" -> "if (!isSettingUp()) return;"
+* Use common inline doc comments as descriptions for xod
 

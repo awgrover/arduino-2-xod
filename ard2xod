@@ -11,6 +11,9 @@ use JSON;
 use lib 'bin';
 use awgrover::Getopt;
 
+my $XODRowSize = 102; # seems to be every 102 pixels
+my $XODColSize = 32; # seems to be
+
 # FIXME: hard code xod location
 my $xoddir = "/home/".$ENV{'USER'}."/xod/__lib__"; # can we ask xod?
 my $xodc = "/home/awgrover/dev/thirdparty/xod/xodc"; # installed xodc is broken, use built
@@ -19,16 +22,17 @@ my $gSwitches;
 
 my %commands = (
     # Parts
-    library => [
+    library => [ # --- 
         ''=>'Make the library dir/properties',
         'help|h|H'=>'this',
         ],
-    unpack => [
-        ''=>'Unpack a .xodball into /tmp/xodball/* for further processing',
+    constructor => [ # --- ardlibdir xod-proj-dir # see output of 'library' for xod-proj_dir
+        ''=>'Make the constructor nodes',
         'help|h|H'=>'this',
         ],
-    constructor => [
-        ''=>'Make the constructor nodes',
+    # util
+    unpack => [
+        ''=>'Unpack a .xodball into /tmp/xodball/* for further processing',
         'help|h|H'=>'this',
         ],
     );
@@ -36,9 +40,10 @@ my %commands = (
 sub fail_with_help {
     my ($msg, $command) = @_;
     say STDERR $msg;
+    @ARGV = qw('--help');
     while(my ($c,$opdef) = each(%commands)) {
         say STDERR $c;
-        say STDERR "    FIXME: and options, do getopt w/--help";
+        awgrover::Getopt::xprintSwitchHelp(@$opdef);
         }
     exit 1;
     }
@@ -103,6 +108,212 @@ sub do_unpack {
     }
   }
 
+sub cpp_safe_token {
+  my ($a) = @_;
+  $a =~ s/-/_/g;
+  die "bad token, can't cpp'ize it: '".$_[0]."'" if $a =~ /[^A-Za-z0-9_]/;
+  $a
+  }
+
+sub do_constructor {
+  # Make a constructor patch
+  # --- $ardlib $xodproject
+
+  my ($ard,$xod) = @ARGV;
+  
+  # We assume the .h file name
+  my $dot_h = "$ard/".basename($ard).".h";
+  if (!-d $ard || !-e $dot_h) {
+    say STDERR "# Expected an arduino library with a .h in $ard";
+    exit 1;
+    }
+
+  if (!-e "$xod/project.xod") {
+    say STDERR "# Expected a xod-project-dir with project.xod in $xod";
+    exit 1;
+    }
+
+  my $ast = `python ./dump_ast.py "$dot_h"`;
+  exit(1) if $?;
+
+  $ast = eval($ast);
+  die $@ if $@;
+ 
+  my $class_ast = find_first(0, $ast, \&p_toplevel, p_node_type('CLASS_DECL'));
+  die "No class" if !$class_ast;
+  my $constructor_ast = find_all(0, $class_ast, \&p_toplevel, p_node_type('CONSTRUCTOR') );
+  print "cons ",dump_shallow($_),"\n" foreach @$constructor_ast;
+  die "No constructors" if !@$constructor_ast;
+
+  my $cons_patch_name = $class_ast->{'text'} or die("No {'text'} in the class node");
+  die "Don't know how to make xod project name safely from '$cons_patch_name'" if $cons_patch_name =~ /[^A-Z0-9a-z_]/;
+  my $class_name = $cons_patch_name;
+  $cons_patch_name = lc $cons_patch_name;
+  $cons_patch_name =~ s/_/-/g;
+  
+  my $ct = 0;
+  foreach my $cons (@$constructor_ast) {
+    my $thisname = $cons_patch_name . ($ct==0 ? '' : $ct); 
+    say "Const patch name: $thisname";
+
+    my %xodp; # the .xodp structure for a constructor patch
+    $xodp{'description'} = "constructor"; # can we do better?
+
+    my $args_ast = find_all(0, $cons, \&p_toplevel, p_node_type('PARM_DECL'));
+    say "  parms ",dump_shallow($_) foreach @$args_ast;
+
+    my %cpp2xod_type = (
+      # we could handle * types with more info here:
+      'TypeKind.INT:4' => 'xod/patch-nodes/input-number',
+      'TypeKind.INT:2' => 'xod/patch-nodes/input-number',
+      'TypeKind.INT:1' => 'xod/patch-nodes/input-number',
+      bool => 'xod/patch-nodes/input-boolean',
+      );
+
+    my @inputs; # [ $name, $xodtypename ]
+    my @saw; # for error message
+    say "  --- args...";
+    foreach my $parm (@$args_ast) {
+      my $input_name = $parm->{'text'};
+      $input_name = cpp_safe_token($input_name);
+
+      my $full_type = $parm->{'type'}; # unparsed, sad. "int *", "bool ()"
+      push @saw, "$full_type $input_name";
+      my ($base_type, @more_type_pieces) = split(" ",$full_type);
+
+      my $cpp_type = $cpp2xod_type{$base_type};
+      if (!$cpp_type) {
+        my $sofar = join ", ", @saw;
+        die "Don't know type for argument in constructor: $class_name($sofar,...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
+        }
+      push @inputs, [ $input_name, $cpp_type ];
+      }
+
+    # each "row" of a patch
+    say "Inputs: ",Dumper(\@inputs);
+    say "constructor (",join(", ", map {$_->[0]} @inputs),")";
+    add_nodes(\%xodp, @inputs);
+    add_nodes(\%xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
+    add_nodes(\%xodp, [$cons_patch_name => 'xod/patch-nodes/output-self']);
+
+    say "Patch ",Dumper(\%xodp);
+    die "make patch";
+    say "make patch $xod/$thisname.xodp...";
+    my $xh = IO::File->new( "$xod/$thisname/patch.xodp", 'w' ) or die($!);
+    write_patch( "$xod/$thisname/patch.xodp", \%xodp );
+    
+    #make .cpp from template
+
+    $ct += 1;
+    }
+  }
+
+sub add_nodes {
+  my ($xodp, @inputs) = @_;
+  # inputs are a list of [name => type] in order
+  # This is one "row" of inputs, arranges these across
+  # creates id, position
+
+  #say "Update xodp ",Dumper($xodp);
+
+  $xodp->{'nodes'} ||= [];
+  my $nodes = $xodp->{'nodes'};
+
+  my $row_y = (($nodes->[-1] || {})->{'position'} || {})->{'y'};
+  $row_y = defined($row_y) ? $row_y + $XODRowSize : 0;
+  say "Row ",$row_y/$XODRowSize;
+
+  #say "inputs; ",Dumper(\@inputs);
+  my $x = 0;
+  my $bound_id = next_xod_id(); # boundValues => { $bound_id => ct } for each node
+  my $in_ct = 0;
+  foreach my $nt (@inputs) {
+    my ($name,$type) = @$nt;
+
+    my %node;
+    $node{'boundValues'} = { $bound_id => $in_ct };
+    $node{'id'} = next_xod_id();
+    $node{'label'} = $name if $name; # some nodes have no name, e.g. not-implemented-in-xod
+    $node{'type'} = $type;
+    $node{'position'} = { x => $x, y => $row_y };
+
+    
+    push @$nodes, \%node;
+
+    $x += $XODColSize;
+    $in_ct += 1;
+    }
+  }
+
+sub next_xod_id {
+  # 9 char id
+  # start/end with alpha
+  state $alpha = ['A'..'Z', 'a'..'z'];
+  state $alphanum = [ @$alpha, '0'..'9','-' ];
+  $alpha->[ rand( scalar @$alpha ) ] . (join "",map { $alphanum->[ rand( scalar @$alphanum ) ] } (1..7)) . $alpha->[ rand( scalar @$alpha ) ];
+  }
+
+sub p_toplevel {
+  # if node is toplevel
+  my ($depth, $node) =@_;
+  $depth == 0;
+  }
+
+sub p_node_type {
+  my ($type) = @_;
+  sub {
+    my ($depth, $node) =@_;
+    $node->{'node'} eq $type;
+    }
+  }
+
+sub dump_shallow {
+  my ($node) = @_;
+  local $Data::Dumper::Maxdepth=1;
+  local $Data::Dumper::Indent=0;
+  Dumper($node);
+  }
+
+sub find_first {
+  my ($depth, $ast, @preds) = @_;
+  find($depth, $ast, 'first', @preds);
+  }
+
+sub find_all {
+  my ($depth, $ast, @preds) = @_;
+  find($depth, $ast, undef, @preds);
+  }
+
+sub find {
+  # find the first child node for and(....)
+  my ($depth, $ast, $onfirst, @preds) = @_;
+  say "start ",dump_shallow($ast) if $depth==0;
+  # say "  preds ",join(" ",@preds);
+
+  my @found;
+  foreach my $child ( @{ $ast->{'children'} || [] } ) {
+    my $hit = 1;
+    #say "  child: ",dump_shallow($child);
+    foreach my $pred (@preds) {
+      if (! &$pred( $depth, $child ) ) {
+        $hit = 0;
+        last;
+        }
+      }
+    if ($hit) { 
+      say "  HIT ",dump_shallow($child);
+      return $child if $onfirst; 
+      push @found, $child;
+      }
+    else {
+      # say "Nope $depth";
+      }
+
+    find($depth+1, $child, $onfirst, @preds);
+    }
+  \@found;
+ }
+
 sub do_library {
     # make the library bits
     # --- $ardlib # > $xoddir/$author/$arddir
@@ -150,7 +361,9 @@ sub main {
     my $whichopts = $commands{$command};
     fail_with_help( "# Expected a command", undef ) if !defined($whichopts);
 
+    $awgrover::Getopt::gUndefIfFail=1;
     $gSwitches = awgrover::Getopt::GetOptions( @$whichopts );
+    exit(1) if !$gSwitches;
 
     no strict 'refs';
     &{"do_".$command}();
