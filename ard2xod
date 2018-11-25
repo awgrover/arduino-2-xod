@@ -183,6 +183,115 @@ sub cpp_safe_token {
   $a
   }
 
+sub foreach_method {
+  my ($methods_ast, $block) = @_;
+  my $ct = 0;
+  say "Method count ".@$methods_ast;
+  foreach my $method (@$methods_ast) {
+    my $args_ast = find_all(0, $method, \&p_toplevel, p_node_type('PARM_DECL'));
+    say "  parms ",dump_shallow($_) foreach @$args_ast;
+
+    my @inputs; # [ $name, $xodtypename ]
+    my @saw; # for error message
+    say "  --- args...";
+    foreach my $parm (@$args_ast) {
+      my $input_name = $parm->{'text'};
+      $input_name = cpp_safe_token($input_name);
+
+      my $full_type = $parm->{'type'}; # unparsed, sad. "int *", "bool ()"
+      push @saw, "$full_type $input_name";
+      my ($base_type, @more_type_pieces) = split(" ",$full_type);
+
+      my $cpp_type = $cpp2xod_type{$base_type};
+      if (!$cpp_type) {
+        my $sofar = join ", ", @saw;
+        die "Don't know type for argument in method ".$method->{'text'}."($sofar,...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
+        }
+      push @inputs, [ $input_name, $cpp_type ];
+      }
+
+    say "Inputs: ",Dumper(\@inputs);
+    say "method ".$method->{'text'}."(",join(", ", map {$_->[0]} @inputs),")";
+    &$block( $ct, { name=> $method->{'text'}, type=>'???' }, \@inputs );
+
+    $ct += 1;
+    }
+  }
+
+sub do_methods {
+  # Make public methods patches
+  # --- $ardlib $xodproject
+
+  my ($ard,$xod) = @ARGV;
+  
+  if (!-e "$xod/project.xod") {
+    say STDERR "# Expected a xod-project-dir with project.xod in $xod";
+    exit 1;
+    }
+
+  my $dot_h = ard_dot_h($ard);
+  my $ast = `python ./dump_ast.py "$dot_h"`;
+  exit(1) if $?;
+
+  $ast = eval($ast);
+  die $@ if $@;
+ 
+  my $class_ast = find_first(0, $ast, \&p_toplevel, p_node_type('CLASS_DECL'));
+  die "No class" if !$class_ast;
+
+  my $methods_ast = find_all(0, $class_ast, \&p_toplevel, p_node_type('CXX_METHOD') );
+  print "methods ",dump_shallow($_),"\n" foreach @$methods_ast;
+  if (!@$methods_ast) {
+    warn "No methods";
+    return;
+    }
+  foreach_method($methods_ast, sub {
+  });
+
+  my $constructor_ast;
+  my $cons_patch_name = $class_ast->{'text'} or die("No {'text'} in the class node");
+  die "Don't know how to make xod project name safely from '$cons_patch_name'" if $cons_patch_name =~ /[^A-Z0-9a-z_]/;
+  my $class_name = $cons_patch_name;
+  $cons_patch_name = lc $cons_patch_name; # for xod stuff
+  my $cpp_patch_name = $cons_patch_name; # we want _
+  $cons_patch_name =~ s/_/-/g; # name wants -
+
+  my $type_base = $xod =~ /\/__lib__\// ? ( basename(dirname($xod)) . "/" . basename($xod) ) : '@';
+  my $type_name_output = $type_base . "/output-" . $cpp_patch_name;
+  my $type_name_input = $type_base . "/input-" . $cpp_patch_name;
+  
+  my $made_ct = foreach_method($methods_ast, sub {
+    my ($ct, $cons, $args) = @_;
+
+    my $this_constructor_name = $cons_patch_name . ($ct==0 ? '' : $ct); 
+    say "Const patch name: $this_constructor_name";
+
+    my %xodp; # the .xodp structure for a constructor patch
+    $xodp{'description'} = "constructor"; # can we do better?
+
+    # each "row" of a patch
+    add_nodes(\%xodp, @$args);
+    add_nodes(\%xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
+    if ($ct == 0) {
+      add_nodes(\%xodp, [$cons_patch_name => 'xod/patch-nodes/output-self']); # self creates a type using patch-name
+      }
+    else {
+      add_nodes(\%xodp, [$cons_patch_name => $type_name_output] );
+      }
+
+    say "Patch ",Dumper(\%xodp);
+    write_patch( "$xod/$this_constructor_name/patch.xodp", \%xodp);
+    
+    my $namespace = ard_lib_name($ard) . "__" . $cpp_patch_name;
+    $namespace =~ s/\//__/g;
+    $namespace = cpp_safe_token($namespace);
+    write_constructor_cpp("$xod/$this_constructor_name/patch.cpp", ard_dot_h($ard), $class_name, $args, $cpp_patch_name, $namespace );
+
+    $ct += 1;
+    });
+  say "Made $made_ct constructor patches";
+  }
+
 sub do_constructor {
   # Make a constructor patch
   # --- $ardlib $xodproject
@@ -190,9 +299,9 @@ sub do_constructor {
   my ($ard,$xod) = @ARGV;
   
   # We assume the .h file name
-  my $dot_h = "$ard/".basename($ard).".h";
+  my $dot_h = ard_dot_h($ard);
   if (!-d $ard || !-e $dot_h) {
-    say STDERR "# Expected an arduino library with a .h in $ard";
+    say STDERR "# Expected an arduino library xwith a .h in $ard";
     exit 1;
     }
 
@@ -224,41 +333,17 @@ sub do_constructor {
   my $type_name_output = $type_base . "/output-" . $cpp_patch_name;
   my $type_name_input = $type_base . "/input-" . $cpp_patch_name;
   
-  my $ct = 0;
-  say "Constructor count ".@$constructor_ast;
-  foreach my $cons (@$constructor_ast) {
+  my $made_ct = foreach_method($constructor_ast, sub {
+    my ($ct, $cons, $args) = @_;
+
     my $this_constructor_name = $cons_patch_name . ($ct==0 ? '' : $ct); 
     say "Const patch name: $this_constructor_name";
 
     my %xodp; # the .xodp structure for a constructor patch
     $xodp{'description'} = "constructor"; # can we do better?
 
-    my $args_ast = find_all(0, $cons, \&p_toplevel, p_node_type('PARM_DECL'));
-    say "  parms ",dump_shallow($_) foreach @$args_ast;
-
-    my @inputs; # [ $name, $xodtypename ]
-    my @saw; # for error message
-    say "  --- args...";
-    foreach my $parm (@$args_ast) {
-      my $input_name = $parm->{'text'};
-      $input_name = cpp_safe_token($input_name);
-
-      my $full_type = $parm->{'type'}; # unparsed, sad. "int *", "bool ()"
-      push @saw, "$full_type $input_name";
-      my ($base_type, @more_type_pieces) = split(" ",$full_type);
-
-      my $cpp_type = $cpp2xod_type{$base_type};
-      if (!$cpp_type) {
-        my $sofar = join ", ", @saw;
-        die "Don't know type for argument in constructor: $class_name($sofar,...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
-        }
-      push @inputs, [ $input_name, $cpp_type ];
-      }
-
     # each "row" of a patch
-    say "Inputs: ",Dumper(\@inputs);
-    say "constructor (",join(", ", map {$_->[0]} @inputs),")";
-    add_nodes(\%xodp, @inputs);
+    add_nodes(\%xodp, @$args);
     add_nodes(\%xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
     if ($ct == 0) {
       add_nodes(\%xodp, [$cons_patch_name => 'xod/patch-nodes/output-self']); # self creates a type using patch-name
@@ -272,12 +357,12 @@ sub do_constructor {
     
     my $namespace = ard_lib_name($ard) . "__" . $cpp_patch_name;
     $namespace =~ s/\//__/g;
-    write_constructor_cpp("$xod/$this_constructor_name/patch.cpp", ard_dot_h($ard), $class_name, \@inputs, $cpp_patch_name, $namespace );
-    #make .cpp from template
+    $namespace = cpp_safe_token($namespace);
+    write_constructor_cpp("$xod/$this_constructor_name/patch.cpp", ard_dot_h($ard), $class_name, $args, $cpp_patch_name, $namespace );
 
     $ct += 1;
-    }
-  say "Made $ct constructor patches";
+    });
+  say "Made $made_ct constructor patches";
   }
 
 sub write_constructor_cpp {
@@ -400,7 +485,7 @@ sub find_all {
 sub find {
   # find the first child node for and(....)
   my ($depth, $ast, $onfirst, @preds) = @_;
-  say "start ",dump_shallow($ast) if $depth==0;
+  #say "start ",dump_shallow($ast) if $depth==0;
   # say "  preds ",join(" ",@preds);
 
   my @found;
@@ -414,7 +499,7 @@ sub find {
         }
       }
     if ($hit) { 
-      say "  HIT ",dump_shallow($child);
+      # say "  HIT ",dump_shallow($child);
       return $child if $onfirst; 
       push @found, $child;
       }
