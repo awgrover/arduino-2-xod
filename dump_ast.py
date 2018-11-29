@@ -64,10 +64,11 @@ def get_text(node):
     # we can get more info about the node.type
     canon_type = str(node.type.get_canonical().kind) + ":" + str(node.type.get_canonical().get_size())
     if kind == 'CXX_METHOD':
+        #print("Method:",text, node.access_specifier.name)
         canonical_return = str(node.result_type.get_canonical().kind) + ":" + str(node.result_type.get_canonical().get_size())
-        return '{{ node => "{}", actual_type => "{}", type => "{}", type_name => "{}", text => "{}", return_actual_type => "{}", return_type => "{}", '.format(kind, node.type.kind, canon_type, node.result_type.kind.spelling, text, node.result_type.kind, canonical_return)
+        return '{{ node => "{}", actual_type => "{}", type => "{}", type_name => "{}", text => "{}", return_actual_type => "{}", return_type => "{}", access => "{}", '.format(kind, node.type.kind, canon_type, node.result_type.spelling, text, node.result_type.kind, canonical_return, node.access_specifier.name)
     else:
-        return '{{ node => "{}", actual_type => "{}", type => "{}", type_name=>"{}", text => "{}", '.format(kind, node.type.kind, canon_type, node.type.spelling, text)
+        return '{{ node => "{}", actual_type => "{}", type => "{}", type_name=>"{}", text => "{}", access => "{}", '.format(kind, node.type.kind, canon_type, node.type.spelling, text, node.access_specifier.name)
 
 if len(sys.argv) != 2:
     print("Usage: dump_ast.py [header file name]")

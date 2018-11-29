@@ -34,6 +34,7 @@ my %cpp2xod_type = (
 
 # A .cpp for constructors looks like this:
 my $cpp_constructor = <<'EOS'; # use {% ... %} interpolations
+//-- constructor {% $arduino{'classname'} %}({% our @args = map {$_->{'name'}} @{$constructor{'arguments'} }; join(", ", @args); %})
 #pragma XOD require "{% $arduino{'github_url'} %}"
 
 // Include C++ library:
@@ -42,8 +43,7 @@ my $cpp_constructor = <<'EOS'; # use {% ... %} interpolations
 {{/global}}
 
 // Our namespace should be: {% $namespace %}
-// Reserve the space for the object. You can have only 1 object of this class
-// FIXME: to have more, just new and add to a list
+// Reserve the space for the object.
 struct State {
   uint8_t mem[sizeof({% $arduino{'classname'} %})];
   };
@@ -59,10 +59,8 @@ void evaluate(Context ctx) {
 
   // var names are valid c++ because we got them from the arglist of the c++ constructor
   {% 
-  our @args;
   foreach my $arg ( @{$constructor{'arguments'} } ) {
     $OUT .= "auto ".$arg->{'name'}." = getValue<input_".$arg->{'name'}."}>; // ".$arg->{'type_name'} ."\n  ";
-    push @args, $arg->{'name'};
   } 
   %}
 
@@ -73,8 +71,10 @@ void evaluate(Context ctx) {
 EOS
 
 my $cpp_method = <<'EOS';
+//-- {% $method{'type'} %} {% $arduino{'classname'} %}::{% $method{'name'} %}({% our @args = map {$_->{'name'}} @{$constructor{'arguments'} }; join(", ", @args); %})
 // Our namespace should be: {% $namespace %}
 struct State {
+  // not used
   };
 
 {{ GENERATED_CODE }}
@@ -93,6 +93,7 @@ void evaluate(Context ctx) {
     $OUT .= join " &&\n    ",@dirty;
     $OUT .= "\n  ) return;";
     }
+  else { '// no inputs' }
   %}
 
   // var names are valid c++ because we got them from the arglist of the c++ method
@@ -105,9 +106,18 @@ void evaluate(Context ctx) {
   %}
 
   auto object  = getValue<input_{% $typename %}>; // {% $arduino{'classname'} %}
-  auto rez = object->{% $method{'name'}%}( {% join ", ", @args; %} );
 
-  emitValue<output_out>(ctx, rez);
+  {% ($method{'type'} ne 'void') ? 'auto rez = ' : '' %}object->{% $method{'name'} %}( {% join(", ", @args) %} ); // {%
+    $method{'type'} ne 'void' 
+    ? $method{'type'} 
+    : 'void'
+  %}
+  
+  emitValue<output_out>(ctx, {% $method{'type'} ne 'void' ? 'rez' : 1 %}); // {% 
+    $method{'type'} ne 'void' 
+    ? $method{'type'} 
+    : 'pulse. return object instead?' 
+  %}
 }
 EOS
 
@@ -260,7 +270,7 @@ sub foreach_method {
 
     say "Inputs: ",Dumper(\@inputs);
     say "method ".$method->{'text'}."(",join(", ", map {$_->[0]} @inputs),")";
-    &$block( $ct, { name=> $method->{'text'}, type=>$method->{'return_type'} }, \@inputs );
+    &$block( $ct, { name=> $method->{'text'}, type=>$method->{'return_type'}, type_name=>$method->{'type_name'} }, \@inputs );
 
     $ct += 1;
     }
@@ -296,16 +306,13 @@ sub do_methods {
   my $class_ast = find_first(0, $ast, \&p_toplevel, p_node_type('CLASS_DECL'));
   die "No class" if !$class_ast;
 
-  my $methods_ast = find_all(0, $class_ast, \&p_toplevel, p_node_type('CXX_METHOD') );
+  my $methods_ast = find_all(0, $class_ast, \&p_toplevel, p_node_type('CXX_METHOD'), p_access('PUBLIC') );
   print "methods ",dump_shallow($_),"\n" foreach @$methods_ast;
   if (!@$methods_ast) {
     warn "No methods";
     return;
     }
-  foreach_method($methods_ast, sub {
-  });
 
-  my $constructor_ast;
   my $cons_patch_name = $class_ast->{'text'} or die("No {'text'} in the class node");
   die "Don't know how to make xod project name safely from '$cons_patch_name'" if $cons_patch_name =~ /[^A-Z0-9a-z_]/;
   my $class_name = $cons_patch_name;
@@ -354,6 +361,7 @@ sub do_methods {
     $namespace =~ s/\//__/g;
     $namespace = cpp_safe_token($namespace);
     
+    say "Method ",Dumper($method);
     my %data = (
       arduino => {
         '.h' => basename($dot_h),
@@ -361,6 +369,7 @@ sub do_methods {
         },
       method => {
         name => $method->{'name'},
+        type => ($method->{'type'} eq 'TypeKind.VOID:-2' ? 'void' : $method->{'type_name'}),
         arguments => [
           map { { name => $_->[0], type => $_->[1], type_name => $_->[2] } } @$args # FIXME: use actual type
           ],
@@ -543,6 +552,14 @@ sub p_toplevel {
   # if node is toplevel
   my ($depth, $node) =@_;
   $depth == 0;
+  }
+
+sub p_access {
+  my ($access_type) = @_; # PUBLIC PROTECTED PRIVATE etc.
+  sub {
+    my ($depth, $node) =@_;
+    $node->{'access'} eq $access_type;
+    }
   }
 
 sub p_node_type {

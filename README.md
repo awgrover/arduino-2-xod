@@ -81,6 +81,8 @@ LLVM/Clang has c++ parser that is [externally accessible](http://clang.llvm.org/
 
 Getting the full AST is problematic. However, several language bindings to the "index" ast are available, and that seems sufficient for this proof. Being able to parse the actual .cpp code would allow detecting delay(), Serial.x, etc.
 
+*problems* The reported ast seems to omit some methods (e.g. fill() is not reported in Adafruit_Neopixel); the type doesn't seem to indicate the correct size or "unsigned" (uint8_t is reported the same as uint16_t).
+
 - For each constructor:
 - [x] Turn the main class into a patch $classname (+ '2' for 2nd etc.)
 -- patches are lower case, "-" only
@@ -96,11 +98,14 @@ Getting the full AST is problematic. However, several language bindings to the "
 - For each public method
 - [x] "this" is `"type": "@/input-adafruit-neopixel"`
 - [x] return this is `"type": "@/output-adafruit-neopixel"`
+- [ ] pointer types (return): uint8 * getPixels()
+- [ ] pointer types (args)
+- [ ] unnamed args: sine8(uint8_t) const,
 
 ./ard2xod methods /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
 
 - For each public attribute
-- [ ] "this" is `"type": "@/input-adafruit-neopixel"`
+- [] "this" is `"type": "@/input-adafruit-neopixel"`
 
 ### Neopixel example
 
