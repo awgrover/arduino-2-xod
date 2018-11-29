@@ -303,7 +303,8 @@ sub do_methods {
   $ast = eval($ast);
   die $@ if $@;
  
-  my $class_ast = find_first(0, $ast, \&p_toplevel, p_node_type('CLASS_DECL'));
+  # FIXME: skip statics?
+  my $class_ast = find_first(0, $ast, \&p_toplevel, p_node_type('CLASS_DECL'), p_access('PUBLIC'));
   die "No class" if !$class_ast;
 
   my $methods_ast = find_all(0, $class_ast, \&p_toplevel, p_node_type('CXX_METHOD'), p_access('PUBLIC') );

@@ -101,6 +101,7 @@ Getting the full AST is problematic. However, several language bindings to the "
 - [ ] pointer types (return): uint8 * getPixels()
 - [ ] pointer types (args)
 - [ ] unnamed args: sine8(uint8_t) const,
+- [ ] skip statics
 
 ./ard2xod methods /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
 
