@@ -7,6 +7,8 @@
 # sudo pip install clang==3.4 # (whatever your `clang --version` is!), fix path below
 import sys
 import clang.cindex
+# useful to browse /usr/local/lib/python2.7/dist-packages/clang/cindex.py to figure out ast objects
+# e.g. node.result_type.text.__class__.__name__ == Type
 import inspect
 
 libclang='/usr/lib/llvm-3.8/lib/libclang.so.1'
@@ -18,7 +20,16 @@ def get_children(node):
     else:
         return (c for c in node.get_children())
 
+def oinspect(a):
+    # non _ key/values
+    vals = ""
+    for key in dir(a):
+        if not key.startswith("_"):
+            vals += key + ", " 
+    return vals
+
 def sinspect(a):
+    # system inspect, only _
     vals = ""
     for key in dir(a):
         if key.startswith("_"):
@@ -52,7 +63,11 @@ def get_text(node):
             text = " ".join(x.spelling for x in node.get_tokens())
     # we can get more info about the node.type
     canon_type = str(node.type.get_canonical().kind) + ":" + str(node.type.get_canonical().get_size())
-    return '{{ node => "{}", type => "{}", text => "{}", '.format(kind, canon_type, text)
+    if kind == 'CXX_METHOD':
+        canonical_return = str(node.result_type.get_canonical().kind) + ":" + str(node.result_type.get_canonical().get_size())
+        return '{{ node => "{}", actual_type => "{}", type => "{}", type_name => "{}", text => "{}", return_actual_type => "{}", return_type => "{}", '.format(kind, node.type.kind, canon_type, node.result_type.kind.spelling, text, node.result_type.kind, canonical_return)
+    else:
+        return '{{ node => "{}", actual_type => "{}", type => "{}", type_name=>"{}", text => "{}", '.format(kind, node.type.kind, canon_type, node.type.spelling, text)
 
 if len(sys.argv) != 2:
     print("Usage: dump_ast.py [header file name]")

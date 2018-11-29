@@ -1,3 +1,9 @@
+# BUG
+put some bad stuff in a lib, get red error notice
+ERROR. The error has no formatter. Report the issue to XOD developers.
+Nothing relevant in dev tools. maybe a Error: ENOENT: no such file or directory, open '/opt/XOD IDE/resources/app-update.yml'
+ 
+
 # Automatic XOD Library from Arduino Library
 
 Up till now ([XOD](https://xod.id) v0.25.2 2018-11-06), it has required a degree of expertise to make [Arduino IDE libraries](https://www.arduino.cc/en/Guide/Libraries) [usable in XOD](https://xod.io/docs/guide/wrapping-arduino-libraries). This is quite a barrier to using XOD for many projects. For example, XOD does not have the NeoPixel library, and Neopixels are very popular.
@@ -20,6 +26,8 @@ This approach would have problems if the library does anti-social things like:
 
 * open the serial port (surprisingly common)
 * use `delay()`
+* open Wire
+* acquire other resources
 
 A non-github library could be used: the user could download it (or install it in the Arduino IDE).
 
@@ -81,13 +89,13 @@ Getting the full AST is problematic. However, several language bindings to the "
 -- for first constructor, the patch name is the xod-type: @/adafruit-neopixel, aka @/output-adafruit-neopixel
 -- second constructors get a "self" output of that type, not xod-self
 - with a .cpp   
-- [ ] that holds the state
+- [x] that holds the state
 
-`./ard2xod constructor /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
+`./ard2xod constructor /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/adafruit/adafruit-neopixel`
 
 - For each public method
-- [ ] "this" is `"type": "@/input-adafruit-neopixel"`
-- [ ] return this is `"type": "@/output-adafruit-neopixel"`
+- [x] "this" is `"type": "@/input-adafruit-neopixel"`
+- [x] return this is `"type": "@/output-adafruit-neopixel"`
 
 ./ard2xod methods /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
 

@@ -23,9 +23,12 @@ my $xodc = "/home/awgrover/dev/thirdparty/xod/xodc"; # installed xodc is broken,
 # (plus the "class" type of interest of course)
 my %cpp2xod_type = (
   # we could handle * types with more info here:
-  'TypeKind.INT:4' => 'xod/patch-nodes/input-number',
+  'TypeKind.INT:4' => 'xod/patch-nodes/input-number', # ints are bytes
   'TypeKind.INT:2' => 'xod/patch-nodes/input-number',
   'TypeKind.INT:1' => 'xod/patch-nodes/input-number',
+  'TypeKind.BOOL:1' => 'xod/patch-nodes/input-boolean',
+  'TypeKind.POINTER:8' => 'xod/patch-nodes/input-number*', # pointers are bits
+  'TypeKind.VOID:-2' => 'void', # special
   bool => 'xod/patch-nodes/input-boolean',
   );
 
@@ -58,7 +61,7 @@ void evaluate(Context ctx) {
   {% 
   our @args;
   foreach my $arg ( @{$constructor{'arguments'} } ) {
-    $OUT .= "auto ".$arg->{'name'}." = getValue<input_".$arg->{'name'}."}>; // ".$arg->{'type'} ."\n  ";
+    $OUT .= "auto ".$arg->{'name'}." = getValue<input_".$arg->{'name'}."}>; // ".$arg->{'type_name'} ."\n  ";
     push @args, $arg->{'name'};
   } 
   %}
@@ -69,16 +72,56 @@ void evaluate(Context ctx) {
 }
 EOS
 
+my $cpp_method = <<'EOS';
+// Our namespace should be: {% $namespace %}
+struct State {
+  };
+
+{{ GENERATED_CODE }}
+
+void evaluate(Context ctx) {
+
+  {% 
+  if (@{$method{'arguments'}}) {
+    $OUT .= "if (\n    ";
+
+    our @dirty;
+    push @dirty, "!isInputDirty<".$typename.">(ctx)";
+    foreach my $arg ( @{$method{'arguments'} } ) {
+      push @dirty, "!isInputDirty<".$arg->{'name'}.">(ctx)";
+    } 
+    $OUT .= join " &&\n    ",@dirty;
+    $OUT .= "\n  ) return;";
+    }
+  %}
+
+  // var names are valid c++ because we got them from the arglist of the c++ method
+  {% 
+  our @args;
+  foreach my $arg ( @{$method{'arguments'} } ) {
+    $OUT .= "auto ".$arg->{'name'}." = getValue<input_".$arg->{'name'}."}>; // ".$arg->{'type_name'} ."\n  ";
+    push @args, $arg->{'name'};
+  } 
+  %}
+
+  auto object  = getValue<input_{% $typename %}>; // {% $arduino{'classname'} %}
+  auto rez = object->{% $method{'name'}%}( {% join ", ", @args; %} );
+
+  emitValue<output_out>(ctx, rez);
+}
+EOS
+
 my $gSwitches;
 
 my %commands = (
     # Parts
-    library => [ # --- 
-        ''=>'Make the library dir/properties',
+    library => [ # --- ardlibdir
+        ''=>'Make the xod library dir/properties',
         'help|h|H'=>'this',
         ],
     constructor => [ # --- ardlibdir xod-proj-dir # see output of 'library' for xod-proj_dir
         ''=>'Make the constructor nodes',
+        '--github-url:s' => 'The github-url for the library (if not in the ard/library.properties',
         'help|h|H'=>'this',
         ],
     methods => [ # --- ardlibdir xod-proj-dir # see output of 'library' for xod-proj_dir
@@ -86,6 +129,10 @@ my %commands = (
         'help|h|H'=>'this',
         ],
     # util
+    ast => [ # --- ardlibdir
+      '' => 'dump the ast',
+      'help|h|H'=>'this',
+      ],
     unpack => [
         ''=>'Unpack a .xodball into /tmp/xodball/* for further processing',
         'help|h|H'=>'this',
@@ -191,7 +238,7 @@ sub foreach_method {
     my $args_ast = find_all(0, $method, \&p_toplevel, p_node_type('PARM_DECL'));
     say "  parms ",dump_shallow($_) foreach @$args_ast;
 
-    my @inputs; # [ $name, $xodtypename ]
+    my @inputs; # [ $name, $xodtypename, $actual-spelled-type ]
     my @saw; # for error message
     say "  --- args...";
     foreach my $parm (@$args_ast) {
@@ -207,15 +254,25 @@ sub foreach_method {
         my $sofar = join ", ", @saw;
         die "Don't know type for argument in method ".$method->{'text'}."($sofar,...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
         }
-      push @inputs, [ $input_name, $cpp_type ];
+      my $type_name = $parm->{'type_name'};
+      push @inputs, [ $input_name, $cpp_type, $type_name ];
       }
 
     say "Inputs: ",Dumper(\@inputs);
     say "method ".$method->{'text'}."(",join(", ", map {$_->[0]} @inputs),")";
-    &$block( $ct, { name=> $method->{'text'}, type=>'???' }, \@inputs );
+    &$block( $ct, { name=> $method->{'text'}, type=>$method->{'return_type'} }, \@inputs );
 
     $ct += 1;
     }
+  }
+
+sub do_ast {
+  # just dump the ast
+  # --- $ardlib
+  my ($ard) = @ARGV;
+  my $dot_h = ard_dot_h($ard);
+  system("python", "./dump_ast.py", $dot_h);
+  exit($?);
   }
 
 sub do_methods {
@@ -260,26 +317,29 @@ sub do_methods {
   my $type_name_output = $type_base . "/output-" . $cpp_patch_name;
   my $type_name_input = $type_base . "/input-" . $cpp_patch_name;
   
-  my %method_counts = {};
+  my %method_counts = ();
   my $made_ct = foreach_method($methods_ast, sub {
     my ($ct, $method, $args) = @_;
 
     # append ct if not first one
-    my $this_method_name = $method->{'text'};
+    my $this_method_name = $method->{'name'};
     $this_method_name .= $method_counts{$this_method_name} if $method_counts{$this_method_name};
 
     say "method patch name: $this_method_name";
+    say "  #args ",Dumper($args);
 
     my %xodp; # the .xodp structure for a constructor patch
     $xodp{'description'} = ""; # can we do better?
 
     # each "row" of a patch
-    add_nodes(\%xodp, [$cons_patch_name => $type_name_input], @$args);
+    add_nodes(\%xodp, [$cpp_patch_name => $type_name_input], @$args);
     add_nodes(\%xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
     if ($method->{'type'}) {
       my $outtype = $cpp2xod_type{ $method->{'type'} };
+      $outtype =~ s/\/input-/\/output-/; # 'input' -> 'output'
       if (!$outtype) {
-        die "Don't know type for return-type of method ".$method->{'type'}." ".$method->{'text'}."(...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
+        warn Dumper($method);
+        die "Don't know type for return-type of method ".$method->{'type'}." ".$method->{'name'}."(...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
         }
       add_nodes(\%xodp, [ out => $outtype] ); # self creates a type using patch-name
       }
@@ -293,11 +353,27 @@ sub do_methods {
     my $namespace = ard_lib_name($ard) . "__" . $cpp_patch_name;
     $namespace =~ s/\//__/g;
     $namespace = cpp_safe_token($namespace);
-    write_method_cpp("$xod", $this_method_name, $args, $namespace );
+    
+    my %data = (
+      arduino => {
+        '.h' => basename($dot_h),
+        classname => $class_name,
+        },
+      method => {
+        name => $method->{'name'},
+        arguments => [
+          map { { name => $_->[0], type => $_->[1], type_name => $_->[2] } } @$args # FIXME: use actual type
+          ],
+        },
+      namespace => $namespace,
+      typename => $cpp_patch_name,
+      );
+    write_patch_cpp("$xod/$this_method_name/patch.cpp", $cpp_method, \%data);
 
     $ct += 1;
+    say "#---end method generation";
     });
-  say "Made $made_ct constructor patches";
+  say "Made $made_ct method patches";
   }
 
 sub do_constructor {
@@ -366,32 +442,33 @@ sub do_constructor {
     my $namespace = ard_lib_name($ard) . "__" . $cpp_patch_name;
     $namespace =~ s/\//__/g;
     $namespace = cpp_safe_token($namespace);
+
+    my $github_url = $gSwitches->{'github-url'} || ard_lib_property($ard,'url');
+    die "Tried to get the 'url' from the $ard/library.properties, but it wasn't there, so give me --github-url xxx." if !$github_url;
+    warn "The github url was in library.properties: ".ard_lib_property($ard,'url') if $gSwitches->{'github-url'} && ard_lib_property($ard,'url');
+
     my %data = (
       arduino => {
-        github_url => "**need github url**",
+        github_url => $github_url,
         '.h' => basename($dot_h),
         classname => $class_name,
         },
       constructor => {
         arguments => [
-          map { { name => $_->[0], type => $_->[1] } } @$args # FIXME: use actual type
+          map { { name => $_->[0], type => $_->[1], type_name => $_->[2] } } @$args # FIXME: use actual type
           ],
         },
       namespace => $namespace,
       typename => $cpp_patch_name,
       );
-  say "Data: ",Dumper(\%data);
-
-    #write_constructor_cpp("$xod/$this_constructor_name/patch.cpp", ard_dot_h($ard), $class_name, $args, $cpp_patch_name, $namespace );
+    say "Data: ",Dumper(\%data);
 
     write_patch_cpp("$xod/$this_constructor_name/patch.cpp", $cpp_constructor, \%data);
-    $ct += 1;
     });
   say "Made $made_ct constructor patches";
   }
 
 sub write_patch_cpp {
-  #my ($fname, $dot_h, $class_name, $inputs, $xod_type_name, $namespace) = @_;
   my ($fname, $template_str, $data) = @_;
 
   my $template = Text::Template->new(
