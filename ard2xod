@@ -459,7 +459,10 @@ sub make_patches {
       });
 
     #say "Patch $this_method_name ",Dumper(\%xodp);
-    write_patch( "$xod/$this_method_name/patch.xodp", \%xodp);
+    # fix patch name
+    my $patch_name = lcfirst($this_method_name);
+    $patch_name =~ s/([A-Z])/'-'.lc($1)/eg;
+    write_patch( "$xod/$patch_name/patch.xodp", \%xodp);
     
     my $namespace = ard_lib_name($ard) . "__" . $cpp_patch_name;
     $namespace =~ s/\//__/g;
@@ -475,7 +478,7 @@ sub make_patches {
       typename => $cpp_patch_name,
       );
     $template_data->($method, \%data);
-    write_patch_cpp("$xod/$this_method_name/patch.cpp", $template, \%data);
+    write_patch_cpp("$xod/$patch_name/patch.cpp", $template, \%data);
 
     $ct += 1;
     last if $gSwitches->{'limit'} && $gSwitches->{'limit'} < $ct+1;
