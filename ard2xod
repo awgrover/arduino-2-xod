@@ -27,7 +27,7 @@ my %cpp2xod_type = (
   'TypeKind.INT:2' => 'xod/patch-nodes/input-number',
   'TypeKind.INT:1' => 'xod/patch-nodes/input-number',
   'TypeKind.BOOL:1' => 'xod/patch-nodes/input-boolean',
-  'TypeKind.POINTER:8' => 'xod/patch-nodes/input-number*', # pointers are bits
+  'TypeKind.POINTER:8' => 'xod/patch-nodes/input-number', # pointers are bits # FIXME: this is actually a pointer to something
   'TypeKind.VOID:-2' => 'void', # special
   bool => 'xod/patch-nodes/input-boolean',
   );
@@ -190,10 +190,13 @@ my %commands = (
         ],
     methods => [ 
         ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public method nodes',
+        '--only:s' => 'only make this exact method name',
+        '--limit:n' => 'only make this many methods',
         'help|h|H'=>'this',
         ],
     properties => [ 
         ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public property nodes',
+        '--limit:n' => 'only make this many properties',
         'help|h|H'=>'this',
         ],
     # util
@@ -431,8 +434,8 @@ sub make_patches {
   $cons_patch_name =~ s/_/-/g; # name wants -
 
   my $type_base = $xod =~ /\/__lib__\// ? ( basename(dirname($xod)) . "/" . basename($xod) ) : '@';
-  my $type_name_output = $type_base . "/output-" . $cpp_patch_name;
-  my $type_name_input = $type_base . "/input-" . $cpp_patch_name;
+  my $type_name_output = $type_base . "/output-" . $cons_patch_name;
+  my $type_name_input = $type_base . "/input-" . $cons_patch_name;
   
   my %method_counts = ();
   my $made_ct = foreach_method($methods_ast, sub {
@@ -475,8 +478,9 @@ sub make_patches {
     write_patch_cpp("$xod/$this_method_name/patch.cpp", $template, \%data);
 
     $ct += 1;
+    last if $gSwitches->{'limit'} && $gSwitches->{'limit'} < $ct+1;
     });
-  say "Made $made_ct $what patches";
+  say "Made ",$made_ct+1," $what patches";
   }
 
 sub do_methods {
@@ -516,8 +520,8 @@ sub do_methods {
   $cons_patch_name =~ s/_/-/g; # name wants -
 
   my $type_base = $xod =~ /\/__lib__\// ? ( basename(dirname($xod)) . "/" . basename($xod) ) : '@';
-  my $type_name_output = $type_base . "/output-" . $cpp_patch_name;
-  my $type_name_input = $type_base . "/input-" . $cpp_patch_name;
+  my $type_name_output = $type_base . "/output-" . $cons_patch_name;
+  my $type_name_input = $type_base . "/input-" . $cons_patch_name;
   
   my %method_counts = ();
   my $made_ct = foreach_method($methods_ast, sub {
@@ -526,6 +530,7 @@ sub do_methods {
     # append ct if not first one
     my $this_method_name = $method->{'name'};
     $this_method_name .= $method_counts{$this_method_name} if $method_counts{$this_method_name};
+    next if $gSwitches->{'only'} && $gSwitches->{'only'} ne $this_method_name;
 
     #say "method patch name: $this_method_name";
     #say "  #args ",Dumper($args);
@@ -536,7 +541,7 @@ sub do_methods {
     # each "row" of a patch
     add_nodes(\%xodp, [$cpp_patch_name => $type_name_input], @$args);
     add_nodes(\%xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
-    if ($method->{'type'}) {
+    if ($method->{'type'} && $method->{'type'} ne 'TypeKind.VOID:-2') {
       my $outtype = $cpp2xod_type{ $method->{'type'} };
       $outtype =~ s/\/input-/\/output-/; # 'input' -> 'output'
       if (!$outtype) {
@@ -550,7 +555,10 @@ sub do_methods {
       }
 
     #say "Patch ",Dumper(\%xodp);
-    write_patch( "$xod/$this_method_name/patch.xodp", \%xodp);
+    # fix patch name
+    my $patch_name = lcfirst($this_method_name);
+    $patch_name =~ s/([A-Z])/'-'.lc($1)/eg;
+    write_patch( "$xod/$patch_name/patch.xodp", \%xodp);
     
     my $namespace = ard_lib_name($ard) . "__" . $cpp_patch_name;
     $namespace =~ s/\//__/g;
@@ -572,12 +580,14 @@ sub do_methods {
       namespace => $namespace,
       typename => $cpp_patch_name,
       );
-    write_patch_cpp("$xod/$this_method_name/patch.cpp", $cpp_method, \%data);
+    write_patch_cpp("$xod/$patch_name/patch.cpp", $cpp_method, \%data);
 
     $ct += 1;
     #say "#---end method generation";
+    last if $gSwitches->{'only'};
+    last if $gSwitches->{'limit'} && $gSwitches->{'limit'} < $ct+1;
     });
-  say "Made $made_ct method patches";
+  say "Made ",$made_ct+1," method patches";
   }
 
 sub do_constructor {
@@ -668,7 +678,7 @@ sub do_constructor {
 
     write_patch_cpp("$xod/$this_constructor_name/patch.cpp", $cpp_constructor, \%data);
     });
-  say "Made $made_ct constructor patches";
+  say "Made ",$made_ct+1," constructor patches";
   }
 
 sub write_patch_cpp {

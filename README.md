@@ -99,6 +99,7 @@ Getting the full AST is problematic. However, several language bindings to the "
 - [x] "this" is `"type": "@/input-adafruit-neopixel"`
 - [x] return this is `"type": "@/output-adafruit-neopixel"`
 - [ ] pointer types (return): uint8 * getPixels()
+-- convert that to a ref type, provide utils?
 - [ ] pointer types (args)
 - [ ] unnamed args: sine8(uint8_t) const,
 - [ ] skip statics
@@ -112,7 +113,7 @@ Getting the full AST is problematic. However, several language bindings to the "
 
 ** adafruit-neopixel1/ crashes xod
 ** doing protected properties for demonstration
-
+f
 rm -rf /home/awgrover/xod/__lib__/adafruit/adafruit-neopixel; ./ard2xod library $ard $xod; ./ard2xod constructor $ard $xod
 
 ### Neopixel example
