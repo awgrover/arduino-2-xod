@@ -121,6 +121,41 @@ void evaluate(Context ctx) {
 }
 EOS
 
+my $cpp_property = <<'EOS';
+//-- {% $property{'type'} %} {% $arduino{'classname'} %}::{% $property{'name'} %} getter/setter
+// Our namespace should be: {% $namespace %}
+struct State {
+  // not used
+  };
+
+{{ GENERATED_CODE }}
+
+void evaluate(Context ctx) {
+
+  // Seems like an ugly pattern...
+
+  // Set the value if incoming value is dirty (and emit it)
+  if ( isInputDirty<val> ) {
+    auto value  = getValue<input_val>; // {% $property{'type'} %}
+    auto object  = getValue<input_{% $typename %}>; // {% $arduino{'classname'} %}
+    object->{% $property{'name'} %} = value;
+    emitValue<output_out>(ctx, value);
+  }
+
+  // Emit the value if object is dirty ? or by pulse?
+  else if ( isInputDirty<{% $typename %}> ) {
+    auto object  = getValue<input_{% $typename %}>; // {% $arduino{'classname'} %}
+    auto value = object->{% $property{'name'} %};
+    emitValue<output_out>(ctx, value );
+    }
+
+  else {
+    // not dirty, do nothing
+    }
+
+}
+EOS
+
 my $gSwitches;
 
 my %commands = (
@@ -136,6 +171,10 @@ my %commands = (
         ],
     methods => [ # --- ardlibdir xod-proj-dir # see output of 'library' for xod-proj_dir
         ''=>'Make the public method nodes',
+        'help|h|H'=>'this',
+        ],
+    properties => [ # --- ardlibdir xod-proj-dir # see output of 'library' for xod-proj_dir
+        ''=>'Make the public property nodes',
         'help|h|H'=>'this',
         ],
     # util
@@ -243,14 +282,14 @@ sub cpp_safe_token {
 sub foreach_method {
   my ($methods_ast, $block) = @_;
   my $ct = 0;
-  say "Method count ".@$methods_ast;
+  say "Count of nodes: ".@$methods_ast;
   foreach my $method (@$methods_ast) {
     my $args_ast = find_all(0, $method, \&p_toplevel, p_node_type('PARM_DECL'));
-    say "  parms ",dump_shallow($_) foreach @$args_ast;
+    #say "  parms ",dump_shallow($_) foreach @$args_ast;
 
     my @inputs; # [ $name, $xodtypename, $actual-spelled-type ]
     my @saw; # for error message
-    say "  --- args...";
+    #say "  --- args...";
     foreach my $parm (@$args_ast) {
       my $input_name = $parm->{'text'};
       $input_name = cpp_safe_token($input_name);
@@ -268,12 +307,13 @@ sub foreach_method {
       push @inputs, [ $input_name, $cpp_type, $type_name ];
       }
 
-    say "Inputs: ",Dumper(\@inputs);
+    #say "Inputs: ",Dumper(\@inputs);
     say "method ".$method->{'text'}."(",join(", ", map {$_->[0]} @inputs),")";
-    &$block( $ct, { name=> $method->{'text'}, type=>$method->{'return_type'}, type_name=>$method->{'type_name'} }, \@inputs );
+    &$block( $ct, { name=> $method->{'text'}, type=>($method->{'return_type'} || $method->{'type'}), type_name=>$method->{'type_name'} }, \@inputs );
 
     $ct += 1;
     }
+  $ct;
   }
 
 sub do_ast {
@@ -283,6 +323,141 @@ sub do_ast {
   my $dot_h = ard_dot_h($ard);
   system("python", "./dump_ast.py", $dot_h);
   exit($?);
+  }
+
+sub do_properties {
+  # Make public property patches
+  # --- $ardlib $xodproject
+
+  my ($ard,$xod) = @ARGV;
+
+  my $description_maker = sub {
+    my ($property_node) = @_;
+    "property " . $property_node->{'text'}; # FIXME: use "doc" and comments etc
+    };
+
+  my $xodp_maker = sub {
+    my ($xodp, $property, $values) = @_;
+    # cpp_patch_name => $cpp_patch_name, type_name_input => $type_name_input,
+
+    # each "row" of a patch
+    my $xod_input_type = $cpp2xod_type{ $property->{'type'} };
+    add_nodes($xodp, 
+      [ $values->{'cpp_patch_name'} => $values->{'type_name_input'} ],
+      [ val => $xod_input_type ]
+      );
+
+    add_nodes($xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
+
+    my $outtype = $cpp2xod_type{ $property->{'type'} };
+    $outtype =~ s/\/input-/\/output-/; # 'input' -> 'output'
+    if (!$outtype) {
+      warn Dumper($property,);
+      die "Don't know type for type of property ".$property->{'type'}." ".$property->{'name'}."(...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
+      }
+    add_nodes($xodp, [ out => $outtype] ); # self creates a type using patch-name
+    };
+
+  my $template_data = sub {
+    my ($property, $data) = @_;
+    $data->{'property'} = {
+      name => $property->{'name'},
+      type => $property->{'type_name'},
+      }
+    };
+
+  make_patches(
+    'property',
+    $ard, $xod,
+    $cpp_property,
+    $description_maker,
+    $xodp_maker,
+    $template_data,
+    [ p_node_type('FIELD_DECL'), p_access('PROTECTED') ],
+    );
+  }
+
+sub make_patches {
+
+  my ($what, $ard, $xod, $template, $description_maker, $xodp_maker, $template_data, $ast_predicates) = @_;
+  
+  if (!-e "$xod/project.xod") {
+    say STDERR "# Expected a xod-project-dir with project.xod in $xod";
+    exit 1;
+    }
+
+  my $dot_h = ard_dot_h($ard);
+  my $ast = `python ./dump_ast.py "$dot_h"`;
+  exit(1) if $?;
+
+  $ast = eval($ast);
+  die $@ if $@;
+ 
+  # FIXME: skip statics?
+  my $class_ast = find_first(0, $ast, \&p_toplevel, p_node_type('CLASS_DECL'));
+  die "No class" if !$class_ast;
+
+  my $methods_ast = find_all(0, $class_ast, @$ast_predicates);
+  #print "found ${what}'s: ",dump_shallow($_),"\n" foreach @$methods_ast;
+  if (!@$methods_ast) {
+    warn "No ${what}'s";
+    return;
+    }
+
+  my $cons_patch_name = $class_ast->{'text'} or die("No {'text'} in the class node");
+  die "Don't know how to make xod project name safely from '$cons_patch_name'" if $cons_patch_name =~ /[^A-Z0-9a-z_]/;
+  my $class_name = $cons_patch_name;
+  $cons_patch_name = lc $cons_patch_name; # for xod stuff
+  my $cpp_patch_name = $cons_patch_name; # we want _
+  $cons_patch_name =~ s/_/-/g; # name wants -
+
+  my $type_base = $xod =~ /\/__lib__\// ? ( basename(dirname($xod)) . "/" . basename($xod) ) : '@';
+  my $type_name_output = $type_base . "/output-" . $cpp_patch_name;
+  my $type_name_input = $type_base . "/input-" . $cpp_patch_name;
+  
+  my %method_counts = ();
+  my $made_ct = foreach_method($methods_ast, sub {
+    my ($ct, $method, $args) = @_;
+
+    # append ct if not first one
+    my $this_method_name = $method->{'name'};
+    $this_method_name .= $method_counts{$this_method_name} if $method_counts{$this_method_name};
+
+    #say "method patch name: $this_method_name";
+    #say "  #args ",Dumper($args);
+
+    my %xodp; # the .xodp structure for a constructor patch
+    $xodp{'description'} = $description_maker ? $description_maker->($method) : ""; # can we do better?
+
+    $xodp_maker->(
+      \%xodp, $method, 
+      {
+      cpp_patch_name => $cpp_patch_name,
+      type_name_input => $type_name_input,
+      });
+
+    #say "Patch $this_method_name ",Dumper(\%xodp);
+    write_patch( "$xod/$this_method_name/patch.xodp", \%xodp);
+    
+    my $namespace = ard_lib_name($ard) . "__" . $cpp_patch_name;
+    $namespace =~ s/\//__/g;
+    $namespace = cpp_safe_token($namespace);
+    
+    #say "Method ",Dumper($method);
+    my %data = ( # usual stuff
+      arduino => {
+        '.h' => basename($dot_h),
+        classname => $class_name,
+        },
+      namespace => $namespace,
+      typename => $cpp_patch_name,
+      );
+    $template_data->($method, \%data);
+    write_patch_cpp("$xod/$this_method_name/patch.cpp", $template, \%data);
+
+    $ct += 1;
+    });
+  say "Made $made_ct method patches";
   }
 
 sub do_methods {
@@ -304,11 +479,11 @@ sub do_methods {
   die $@ if $@;
  
   # FIXME: skip statics?
-  my $class_ast = find_first(0, $ast, \&p_toplevel, p_node_type('CLASS_DECL'), p_access('PUBLIC'));
+  my $class_ast = find_first(0, $ast, \&p_toplevel, p_node_type('CLASS_DECL'));
   die "No class" if !$class_ast;
 
   my $methods_ast = find_all(0, $class_ast, \&p_toplevel, p_node_type('CXX_METHOD'), p_access('PUBLIC') );
-  print "methods ",dump_shallow($_),"\n" foreach @$methods_ast;
+  #print "methods ",dump_shallow($_),"\n" foreach @$methods_ast;
   if (!@$methods_ast) {
     warn "No methods";
     return;
@@ -333,8 +508,8 @@ sub do_methods {
     my $this_method_name = $method->{'name'};
     $this_method_name .= $method_counts{$this_method_name} if $method_counts{$this_method_name};
 
-    say "method patch name: $this_method_name";
-    say "  #args ",Dumper($args);
+    #say "method patch name: $this_method_name";
+    #say "  #args ",Dumper($args);
 
     my %xodp; # the .xodp structure for a constructor patch
     $xodp{'description'} = ""; # can we do better?
@@ -355,14 +530,14 @@ sub do_methods {
       add_nodes(\%xodp, [ did => "xod/patch-nodes/output-pulse" ] ); # pulse on finish
       }
 
-    say "Patch ",Dumper(\%xodp);
+    #say "Patch ",Dumper(\%xodp);
     write_patch( "$xod/$this_method_name/patch.xodp", \%xodp);
     
     my $namespace = ard_lib_name($ard) . "__" . $cpp_patch_name;
     $namespace =~ s/\//__/g;
     $namespace = cpp_safe_token($namespace);
     
-    say "Method ",Dumper($method);
+    #say "Method ",Dumper($method);
     my %data = (
       arduino => {
         '.h' => basename($dot_h),
@@ -381,7 +556,7 @@ sub do_methods {
     write_patch_cpp("$xod/$this_method_name/patch.cpp", $cpp_method, \%data);
 
     $ct += 1;
-    say "#---end method generation";
+    #say "#---end method generation";
     });
   say "Made $made_ct method patches";
   }
@@ -413,7 +588,7 @@ sub do_constructor {
   my $class_ast = find_first(0, $ast, \&p_toplevel, p_node_type('CLASS_DECL'));
   die "No class" if !$class_ast;
   my $constructor_ast = find_all(0, $class_ast, \&p_toplevel, p_node_type('CONSTRUCTOR') );
-  print "cons ",dump_shallow($_),"\n" foreach @$constructor_ast;
+  #print "cons ",dump_shallow($_),"\n" foreach @$constructor_ast;
   die "No constructors" if !@$constructor_ast;
 
   my $cons_patch_name = $class_ast->{'text'} or die("No {'text'} in the class node");
@@ -431,7 +606,7 @@ sub do_constructor {
     my ($ct, $cons, $args) = @_;
 
     my $this_constructor_name = $cons_patch_name . ($ct==0 ? '' : $ct); 
-    say "Const patch name: $this_constructor_name";
+    say "Constructor: $this_constructor_name";
 
     my %xodp; # the .xodp structure for a constructor patch
     $xodp{'description'} = "constructor"; # can we do better?
@@ -446,7 +621,7 @@ sub do_constructor {
       add_nodes(\%xodp, [$cons_patch_name => $type_name_output] );
       }
 
-    say "Patch ",Dumper(\%xodp);
+    #say "Patch ",Dumper(\%xodp);
     write_patch( "$xod/$this_constructor_name/patch.xodp", \%xodp);
     
     my $namespace = ard_lib_name($ard) . "__" . $cpp_patch_name;
@@ -471,7 +646,6 @@ sub do_constructor {
       namespace => $namespace,
       typename => $cpp_patch_name,
       );
-    say "Data: ",Dumper(\%data);
 
     write_patch_cpp("$xod/$this_constructor_name/patch.cpp", $cpp_constructor, \%data);
     });
@@ -481,13 +655,13 @@ sub do_constructor {
 sub write_patch_cpp {
   my ($fname, $template_str, $data) = @_;
 
+  #say "Data: ",Dumper($data);
+
   my $template = Text::Template->new(
     TYPE => 'STRING', 
     SOURCE => $template_str,
     DELIMITERS => ['{%', '%}']
     );
-
-  say "Data: ",Dumper($data);
 
   my $cpp = $template->fill_in(HASH => $data);
   my $fh = IO::File->new( $fname, 'w') or die($!);
@@ -519,7 +693,7 @@ sub add_nodes {
 
   my $row_y = (($nodes->[-1] || {})->{'position'} || {})->{'y'};
   $row_y = defined($row_y) ? $row_y + $XODRowSize : $XODRowSize; # start not in corner
-  say "Row ",$row_y/$XODRowSize;
+  #say "Row ",$row_y/$XODRowSize;
 
   #say "inputs; ",Dumper(\@inputs);
   my $x = 2 * $XODColSize; # start not in corner
@@ -557,6 +731,7 @@ sub p_toplevel {
 
 sub p_access {
   my ($access_type) = @_; # PUBLIC PROTECTED PRIVATE etc.
+  die "Expected PUBLIC|PROTECTED|PRIVATE" if $access_type !~ /^PUBLIC|PROTECTED|PRIVATE$/;
   sub {
     my ($depth, $node) =@_;
     $node->{'access'} eq $access_type;
@@ -605,12 +780,12 @@ sub find {
         }
       }
     if ($hit) { 
-      # say "  HIT ",dump_shallow($child);
+      #say "  HIT ",dump_shallow($child);
       return $child if $onfirst; 
       push @found, $child;
       }
     else {
-      # say "Nope $depth";
+      #say "Nope $depth";
       }
 
     find($depth+1, $child, $onfirst, @preds);
