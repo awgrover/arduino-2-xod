@@ -156,25 +156,44 @@ void evaluate(Context ctx) {
 }
 EOS
 
+sub do_make {
+  {
+  say STDERR Dumper(\@ARGV);
+  local @ARGV = @ARGV;
+  pop @ARGV;
+  say STDERR Dumper(\@ARGV);
+  do_library();
+  }
+  do_constructor();
+  do_methods();
+  do_properties();
+  }
+
+
 my $gSwitches;
 
 my %commands = (
+    make => [
+        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the xod library',
+        '--github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
+        'help|h|H'=>'this',
+        ],
     # Parts
-    library => [ # --- ardlibdir
-        ''=>'Make the xod library dir/properties',
+    library => [
+        ''=>'--- ardlibdir # Make the xod library dir/properties',
         'help|h|H'=>'this',
         ],
-    constructor => [ # --- ardlibdir xod-proj-dir # see output of 'library' for xod-proj_dir
-        ''=>'Make the constructor nodes',
-        '--github-url:s' => 'The github-url for the library (if not in the ard/library.properties',
+    constructor => [ 
+        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the constructor nodes',
+        '--github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
         'help|h|H'=>'this',
         ],
-    methods => [ # --- ardlibdir xod-proj-dir # see output of 'library' for xod-proj_dir
-        ''=>'Make the public method nodes',
+    methods => [ 
+        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public method nodes',
         'help|h|H'=>'this',
         ],
-    properties => [ # --- ardlibdir xod-proj-dir # see output of 'library' for xod-proj_dir
-        ''=>'Make the public property nodes',
+    properties => [ 
+        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public property nodes',
         'help|h|H'=>'this',
         ],
     # util
@@ -457,7 +476,7 @@ sub make_patches {
 
     $ct += 1;
     });
-  say "Made $made_ct method patches";
+  say "Made $made_ct $what patches";
   }
 
 sub do_methods {
@@ -599,8 +618,8 @@ sub do_constructor {
   $cons_patch_name =~ s/_/-/g; # name wants -
 
   my $type_base = $xod =~ /\/__lib__\// ? ( basename(dirname($xod)) . "/" . basename($xod) ) : '@';
-  my $type_name_output = $type_base . "/output-" . $cpp_patch_name;
-  my $type_name_input = $type_base . "/input-" . $cpp_patch_name;
+  my $type_name_output = $type_base . "/output-" . $cons_patch_name;
+  my $type_name_input = $type_base . "/input-" . $cons_patch_name;
   
   my $made_ct = foreach_method($constructor_ast, sub {
     my ($ct, $cons, $args) = @_;

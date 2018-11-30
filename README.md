@@ -108,6 +108,13 @@ Getting the full AST is problematic. However, several language bindings to the "
 - For each public attribute
 - [] "this" is `"type": "@/input-adafruit-neopixel"`
 
+./ard2xod properties /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
+
+** adafruit-neopixel1/ crashes xod
+** doing protected properties for demonstration
+
+rm -rf /home/awgrover/xod/__lib__/adafruit/adafruit-neopixel; ./ard2xod library $ard $xod; ./ard2xod constructor $ard $xod
+
 ### Neopixel example
 
 File `Adafruit_NeoPixel.h`
