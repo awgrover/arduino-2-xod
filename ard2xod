@@ -641,7 +641,9 @@ sub do_constructor {
     say "Constructor: $this_constructor_name";
 
     my %xodp; # the .xodp structure for a constructor patch
-    $xodp{'description'} = "constructor"; # can we do better?
+
+    my $github_url = $gSwitches->{'github-url'} || ard_lib_property($ard,'url');
+    $xodp{'description'} = "constructor\n".$github_url; # can we do better?
 
     # each "row" of a patch
     add_nodes(\%xodp, @$args);

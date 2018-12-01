@@ -107,14 +107,18 @@ Getting the full AST is problematic. However, several language bindings to the "
 ./ard2xod methods /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
 
 - For each public attribute
-- [] "this" is `"type": "@/input-adafruit-neopixel"`
+- [ ] "this" is `"type": "@/input-adafruit-neopixel"`
 
 ./ard2xod properties /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
 
 ** adafruit-neopixel1/ crashes xod
 ** doing protected properties for demonstration
-f
+
 rm -rf /home/awgrover/xod/__lib__/adafruit/adafruit-neopixel; ./ard2xod library $ard $xod; ./ard2xod constructor $ard $xod
+
+*support* nodes (generics)
+Apparently I'll need to make instances of "generic" nodes like 'if': `Cannot find specialization gate(adafruit-neopixel) for abstract xod/core/gate.`
+- [ ] Instead, emit object & pulse
 
 ### Neopixel example
 
@@ -173,3 +177,5 @@ To make this usable by a normal person, there should be some automation for gett
 * Fixup code with with options like "once only" -> "if (!isSettingUp()) return;"
 * Use common inline doc comments as descriptions for xod
 
+- [ ] want to double-click make comment. '//'
+- [ ] want to style comments to make sections 
