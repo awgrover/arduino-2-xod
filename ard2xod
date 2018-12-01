@@ -60,7 +60,7 @@ void evaluate(Context ctx) {
   // var names are valid c++ because we got them from the arglist of the c++ constructor
   {% 
   foreach my $arg ( @{$constructor{'arguments'} } ) {
-    $OUT .= "auto ".$arg->{'name'}." = getValue<input_".$arg->{'name'}."}>; // ".$arg->{'type_name'} ."\n  ";
+    $OUT .= "auto ".$arg->{'name'}." = getValue<input_".$arg->{'name'}.">; // ".$arg->{'type_name'} ."\n  ";
   } 
   %}
 
@@ -100,7 +100,7 @@ void evaluate(Context ctx) {
   {% 
   our @args;
   foreach my $arg ( @{$method{'arguments'} } ) {
-    $OUT .= "auto ".$arg->{'name'}." = getValue<input_".$arg->{'name'}."}>; // ".$arg->{'type_name'} ."\n  ";
+    $OUT .= "auto ".$arg->{'name'}." = getValue<input_".$arg->{'name'}.">; // ".$arg->{'type_name'} ."\n  ";
     push @args, $arg->{'name'};
   } 
   %}
@@ -113,10 +113,12 @@ void evaluate(Context ctx) {
     : 'void'
   %}
   
-  emitValue<output_out>(ctx, {% $method{'type'} ne 'void' ? 'rez' : 1 %}); // {% 
+  emitValue<output_{% $typename %}>(ctx, object); // for chaining
+
+  emitValue<output_{% $method{'type'} ne 'void' ? 'val' : 'done' %}>(ctx, {% $method{'type'} ne 'void' ? 'rez' : 1 %}); // {% 
     $method{'type'} ne 'void' 
     ? $method{'type'} 
-    : 'pulse. return object instead?' 
+    : 'pulse';
   %}
 }
 EOS
@@ -146,7 +148,9 @@ void evaluate(Context ctx) {
   else if ( isInputDirty<{% $typename %}> ) {
     auto object  = getValue<input_{% $typename %}>; // {% $arduino{'classname'} %}
     auto value = object->{% $property{'name'} %};
-    emitValue<output_out>(ctx, value );
+
+    emitValue<output_{% $typename %}>(ctx, object);
+    emitValue<output_val>(ctx, value );
     }
 
   else {
@@ -377,7 +381,8 @@ sub do_properties {
       warn Dumper($property,);
       die "Don't know type for type of property ".$property->{'type'}." ".$property->{'name'}."(...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
       }
-    add_nodes($xodp, [ out => $outtype] ); # self creates a type using patch-name
+    add_nodes($xodp, [ val => $outtype] );
+    add_nodes($xodp, [$values->{'cons_patch_name'} => $values->{'type_name_output'} ] );
     };
 
   my $template_data = sub {
@@ -453,9 +458,12 @@ sub make_patches {
 
     $xodp_maker->(
       \%xodp, $method, 
+      # FIXME: this data looks like the template_data below
       {
+      cons_patch_name => $cons_patch_name,
       cpp_patch_name => $cpp_patch_name,
       type_name_input => $type_name_input,
+      type_name_output => $type_name_output,
       });
 
     #say "Patch $this_method_name ",Dumper(\%xodp);
@@ -475,6 +483,7 @@ sub make_patches {
         classname => $class_name,
         },
       namespace => $namespace,
+      cons_patch_name => $cons_patch_name,
       typename => $cpp_patch_name,
       );
     $template_data->($method, \%data);
@@ -544,18 +553,24 @@ sub do_methods {
     # each "row" of a patch
     add_nodes(\%xodp, [$cpp_patch_name => $type_name_input], @$args);
     add_nodes(\%xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
-    if ($method->{'type'} && $method->{'type'} ne 'TypeKind.VOID:-2') {
-      my $outtype = $cpp2xod_type{ $method->{'type'} };
-      $outtype =~ s/\/input-/\/output-/; # 'input' -> 'output'
-      if (!$outtype) {
-        warn Dumper($method);
-        die "Don't know type for return-type of method ".$method->{'type'}." ".$method->{'name'}."(...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
-        }
-      add_nodes(\%xodp, [ out => $outtype] ); # self creates a type using patch-name
+
+    my $outtype = $cpp2xod_type{ $method->{'type'} };
+    $outtype =~ s/\/input-/\/output-/; # 'input' -> 'output'
+    if (!$outtype) {
+      warn Dumper($method);
+      die "Don't know type for return-type of method ".$method->{'type'}." ".$method->{'name'}."(...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
+      }
+
+    my @rez_nodes;
+    push @rez_nodes, [$cons_patch_name => $type_name_output];
+    if ($method->{'type'} eq 'TypeKind.VOID:-2') {
+      push @rez_nodes, [ done => "xod/patch-nodes/output-pulse" ]; # pulse on finish
       }
     else {
-      add_nodes(\%xodp, [ did => "xod/patch-nodes/output-pulse" ] ); # pulse on finish
+      push @rez_nodes, [ val => $outtype ]; # pulse on finish
       }
+    add_nodes(\%xodp, @rez_nodes );
+
 
     #say "Patch ",Dumper(\%xodp);
     # fix patch name
@@ -649,7 +664,7 @@ sub do_constructor {
     add_nodes(\%xodp, @$args);
     add_nodes(\%xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
     if ($ct == 0) {
-      add_nodes(\%xodp, [$cons_patch_name => 'xod/patch-nodes/output-self']); # self creates a type using patch-name
+      add_nodes(\%xodp, [$cpp_patch_name => 'xod/patch-nodes/output-self']); # self creates a type using patch-name
       }
     else {
       add_nodes(\%xodp, [$cons_patch_name => $type_name_output] );

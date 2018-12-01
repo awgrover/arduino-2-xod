@@ -70,6 +70,8 @@ File `~/xod/__lib__/adafruit/adafruit_neopixel/project.xod` (nb. lower case):
     }
 
 Deduce license?
+- [ ] version doesn't show in XOD
+-- make a readme patch
 
 ## Libary Class = Node w/State and Bus
 
@@ -107,7 +109,7 @@ Getting the full AST is problematic. However, several language bindings to the "
 ./ard2xod methods /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
 
 - For each public attribute
-- [ ] "this" is `"type": "@/input-adafruit-neopixel"`
+- [x] "this" is `"type": "@/input-adafruit-neopixel"`
 
 ./ard2xod properties /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
 
@@ -118,8 +120,10 @@ rm -rf /home/awgrover/xod/__lib__/adafruit/adafruit-neopixel; ./ard2xod library 
 
 *support* nodes (generics)
 Apparently I'll need to make instances of "generic" nodes like 'if': `Cannot find specialization gate(adafruit-neopixel) for abstract xod/core/gate.`
-- [ ] Instead, emit object & pulse
+- [x] Instead, emit object & pulse
 
+set-pixel-color: done=>pulse
+get-pixel-color: val=>int
 ### Neopixel example
 
 File `Adafruit_NeoPixel.h`
@@ -140,8 +144,8 @@ CODE HERE annotate as a template
 
 Each method (and public attribute) becomes a patch.
 
-- [ ] At least an input for the object.
--- [ ] if it has void return value, add a "pulse" output "trigger".
+- [x] At least an input for the object.
+-- [x] if it has void return value, add a "pulse" output "trigger".
 
 ? attributes can be updated by methods, or represent hardware inputs, which need to trigger "update" in the xod graph.
 
@@ -157,11 +161,51 @@ File `Adafruit_NeoPixel.h`
         setPin(uint8_t p),
         setPixelColor(uint16_t n, uint8_t r, uint8_t g, uint8_t b),
 
-CODE HERE annotate as a template
-
 ### issues
 
 * XOD has a port type, but library code typically uses int or uint.
+
+# Discuss
+
+First valid library: emitted a pulse on most nodes. Found that I wanted to chain things (for sequencing), and wanted the object.
+
+get compile error: the 'label' of the xod/patch-nodes/output-self is actually used in the cpp:
+    namespace xod {
+
+    //-----------------------------------------------------------------------------
+    // adafruit/xneo/adafruitneopixel implementation
+    //-----------------------------------------------------------------------------
+    namespace adafruit__xneo__adafruitneopixel {
+
+    //-- constructor Adafruit_NeoPixel(n, p, t)
+    //#pragma XOD require "https://github.com/adafruit/Adafruit_NeoPixel"
+
+    // Include C++ library:
+    // --- Enter global namespace ---
+    }}
+    #include <Adafruit_NeoPixel.h>
+
+    namespace xod {
+    namespace adafruit__xneo__adafruitneopixel {
+    // --- Back to local namespace ---
+    // Our namespace should be: adafruit__adafruit_neopixel__adafruit_neopixel
+    // Reserve the space for the object.
+    struct State {
+      uint8_t mem[sizeof(Adafruit_NeoPixel)];
+    struct Node {
+        State state;
+        adafruit__xneo__adafruitneopixel::Type output_adafruit-neopixel;
+
+        union {
+            struct {
+                bool isOutputDirty_adafruit-neopixel : 1;
+                bool isNodeDirty : 1;
+            };
+
+            DirtyFlags dirtyFlags;
+        };
+    };
+
 
 # More Automation
 
@@ -179,3 +223,5 @@ To make this usable by a normal person, there should be some automation for gett
 
 - [ ] want to double-click make comment. '//'
 - [ ] want to style comments to make sections 
+- [ ] a library should have a readme? or are examples good enough?
+- [ ] slow startup: reading "libs"? needs spinner. can stuff be cached?
