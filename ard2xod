@@ -532,8 +532,8 @@ sub do_methods {
   $cons_patch_name =~ s/_/-/g; # name wants -
 
   my $type_base = $xod =~ /\/__lib__\// ? ( basename(dirname($xod)) . "/" . basename($xod) ) : '@';
-  my $type_name_output = $type_base . "/output-" . $cons_patch_name;
-  my $type_name_input = $type_base . "/input-" . $cons_patch_name;
+  my $type_name_output = $type_base . "/output-" . $cons_patch_name; # xod bug? should be: $cons_patch_name;
+  my $type_name_input = $type_base . "/input-" . $cons_patch_name; # xod bug? should be: $cons_patch_name;
   
   my %method_counts = ();
   my $made_ct = foreach_method($methods_ast, sub {
@@ -634,6 +634,7 @@ sub do_constructor {
  
   my $class_ast = find_first(0, $ast, \&p_toplevel, p_node_type('CLASS_DECL'));
   die "No class" if !$class_ast;
+
   my $constructor_ast = find_all(0, $class_ast, \&p_toplevel, p_node_type('CONSTRUCTOR') );
   #print "cons ",dump_shallow($_),"\n" foreach @$constructor_ast;
   die "No constructors" if !@$constructor_ast;

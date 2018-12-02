@@ -167,9 +167,10 @@ File `Adafruit_NeoPixel.h`
 
 # Discuss
 
-First valid library: emitted a pulse on most nodes. Found that I wanted to chain things (for sequencing), and wanted the object.
+* First valid library: emitted a pulse on most nodes. Found that I wanted to chain things (for sequencing), and wanted the object.
 
-get compile error: the 'label' of the xod/patch-nodes/output-self is actually used in the cpp:
+* get compile error: the 'label' of the xod/patch-nodes/output-self is actually used in the cpp (possibly a bug: failed to globally s/-/_/ ?):
+```
     namespace xod {
 
     //-----------------------------------------------------------------------------
@@ -205,7 +206,23 @@ get compile error: the 'label' of the xod/patch-nodes/output-self is actually us
             DirtyFlags dirtyFlags;
         };
     };
+```
+* possibly similar bug to above. I think the synthetic adafruit/adafruit-neopixel/output-adafruit-neopixel is all "-", so in xodp:
+"type" : "adafruit/adafruit-neopixel/output-adafruit-neopixel"
+but, in several places in the transpiled code:
+```
+struct Node {
+    State state;
+    adafruit__adafruit_neopixel__adafruit_neopixel::Type output_adafruit-neopixel;
+    Logic output_done;
 
+    union {
+        struct {
+            bool isOutputDirty_adafruit-neopixel : 1;
+```
+So, again, failure to globally s/-/_/ ?
+
+* I think "patch name is type name" is mostly true, but failure to s/-/_/g.
 
 # More Automation
 
@@ -225,3 +242,11 @@ To make this usable by a normal person, there should be some automation for gett
 - [ ] want to style comments to make sections 
 - [ ] a library should have a readme? or are examples good enough?
 - [ ] slow startup: reading "libs"? needs spinner. can stuff be cached?
+- [ ] add prominent examples like the ard ide: especially blink, or "get board info" or something
+- [ ] can't get back to tutorial w/o restart?
+- [ ] the "console"(?) (the deploy text section at bottom) doesn't auto-position at bottom, often have to scroll to bottom manually
+- [ ] convert to bus should ask for name. using  the node-name as default?
+- [ ] the label for from-bus should validate the name, possible drop-down, or some way of getting it right (most recent)
+- [ ] renaming a to-bus should rename all from-bus that are currently the same
+- [ ] Instructions for manually installing arduino libs isn't quite right: ~/xod/__ardulib__/$arduinolibrary
+
