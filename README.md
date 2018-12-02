@@ -222,7 +222,7 @@ struct Node {
 ```
 So, again, failure to globally s/-/_/ ?
 
-* I think "patch name is type name" is mostly true, but failure to s/-/_/g.
+* I think "patch name is type name" is mostly true, but failure to s/-/_/g? but w5500-device works.
 
 # More Automation
 
@@ -249,4 +249,5 @@ To make this usable by a normal person, there should be some automation for gett
 - [ ] the label for from-bus should validate the name, possible drop-down, or some way of getting it right (most recent)
 - [ ] renaming a to-bus should rename all from-bus that are currently the same
 - [ ] Instructions for manually installing arduino libs isn't quite right: ~/xod/__ardulib__/$arduinolibrary
+- [ ] express constructor, static, enums, methods
 
