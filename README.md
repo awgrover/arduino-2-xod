@@ -1,9 +1,3 @@
-# BUG
-put some bad stuff in a lib, get red error notice
-ERROR. The error has no formatter. Report the issue to XOD developers.
-Nothing relevant in dev tools. maybe a Error: ENOENT: no such file or directory, open '/opt/XOD IDE/resources/app-update.yml'
- 
-
 # Automatic XOD Library from Arduino Library
 
 Up till now ([XOD](https://xod.id) v0.25.2 2018-11-06), it has required a degree of expertise to make [Arduino IDE libraries](https://www.arduino.cc/en/Guide/Libraries) [usable in XOD](https://xod.io/docs/guide/wrapping-arduino-libraries). This is quite a barrier to using XOD for many projects. For example, XOD does not have the NeoPixel library, and Neopixels are very popular.
@@ -255,5 +249,10 @@ To make this usable by a normal person, there should be some automation for gett
 - [ ] a generic delay: t1 instead of set, pass it through instead of pulse
 - [ ] an "all" node, takes many t1's, outputs a t1 only when all t1's come in (all dirty)
 
-No implementation found in leaf patch
-No implementation for adafruit/adafruit-neopixel/gate(adafruitneopixel) found.
+*BUG*
+put some bad stuff in a lib, get red error notice
+ERROR. The error has no formatter. Report the issue to XOD developers.
+Nothing relevant in dev tools. maybe a Error: ENOENT: no such file or directory, open '/opt/XOD IDE/resources/app-update.yml'
+ 
+
+
