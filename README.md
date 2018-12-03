@@ -253,7 +253,7 @@ To make this usable by a normal person, there should be some automation for gett
 - [ ] a lot of patches in my library slows down xod startup dramatically
 - [ ] a pity you couldn't `template<T t1> evaluate(...) { ... }` for the abstract nodes in cpp. code is indentical for core specializations
 - [ ] a generic delay: t1 instead of set, pass it through instead of pulse
-
+- [ ] an "all" node, takes many t1's, outputs a t1 only when all t1's come in (all dirty)
 
 No implementation found in leaf patch
 No implementation for adafruit/adafruit-neopixel/gate(adafruitneopixel) found.

@@ -898,15 +898,15 @@ sub specialize_cpp {
   my $extant_specialized_file = `find $xod_builtin_lib -path '*/$extant_specialized_name'`;
   chomp $extant_specialized_file;
   if (!$extant_specialized_file) {
-    warn "Can't find an exemplar for '$patch_name', like '*/$extant_specialized_name'";
+    warn "Can't find an exemplar for '$patch_name', like '*/$extant_specialized_name'\n";
     return 0;
     }
 
   say "From $extant_specialized_file ..";
-  my $fh = IO::File->new( $extant_specialized_file );
-  my @extant_cpp = <$fh>;
-  $fh->close;
-  say "Read:",@extant_cpp;
+  say "Wrote $xod/$this_patch_name/patch.cpp";
+  my $rez = system('cp', $extant_specialized_file, "$xod/$this_patch_name/patch.cpp");
+
+  return !$rez;
   }
 
 sub specialize_xodp {
@@ -915,6 +915,10 @@ sub specialize_xodp {
   my $xodp = decode_json( `cat $an_abstract_xodp_file` );
   say "json: ",Dumper($xodp);
 
+  # for un-labeled inputs, if only 1, then "IN", if more, then "IN1"..
+  # so, we may have to fixup the first
+
+  my ($firstin, $firstout); # {'node'}[n] entries
   my ($inct, $outct) = (1,1);
   foreach my $node (@{$xodp->{'nodes'}}) {
     # we'll implement it, so:
@@ -930,13 +934,41 @@ sub specialize_xodp {
         $node->{'type'} = $in ? $defn->{'xod'}->{'input_type_name'} : $defn->{'xod'}->{'output_type_name'};
         }
       if (!$node->{'label'}) {
+        # unlabeled
         my $in = $node->{'type'} =~ /\/input-/;
-        $node->{'label'} = $in ? "IN$inct" : "OUT$outct";
-        if ($in) { $inct += 1; }
-        else { $outct += 1; }
+        # remember for fixup
+        if ($in) {
+          if ($inct == 1) {
+            $node->{'label'} = "IN";
+            $firstin = $node 
+            }
+          else {
+            $node->{'label'} = "IN$inct";
+            }
+          $inct += 1;
+          }
+        else {
+          if ($outct == 1) {
+            $node->{'label'} = "OUT";
+            $firstout = $node 
+            }
+          else {
+            $node->{'label'} = "OUT$outct";
+            }
+          $outct += 1;
+          }
         }
       }
       say "  ".$node->{'label'}." => ".$node->{'type'};
+    }
+  # fixup firsts
+  if ($inct > 2) {
+    $firstin->{'label'} .= '1';
+    say "  FIXUP in to ",$firstin->{'label'};
+    }
+  if ($outct > 2) {
+    $firstout->{'label'} .= '1';
+    say "  FIXUP out to ",$firstout->{'label'};
     }
   
   say "Abstract patch $this_patch_name";

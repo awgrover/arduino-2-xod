@@ -1,0 +1,49 @@
+{
+   "description" : "constructor\nhttps://github.com/adafruit/Adafruit_NeoPixel\nArduino: Adafruit_NeoPixel\nXOD: adafruit/adafruit-neopixel/input-adafruitneopixel\ncpp postfix: adafruitneopixel",
+   "nodes" : [
+      {
+         "position" : {
+            "x" : 68,
+            "y" : 102
+         },
+         "label" : "n",
+         "id" : "F0bIxO7lC",
+         "type" : "xod/patch-nodes/input-number"
+      },
+      {
+         "position" : {
+            "y" : 102,
+            "x" : 136
+         },
+         "id" : "hFHIuGT5E",
+         "type" : "xod/patch-nodes/input-number",
+         "label" : "p"
+      },
+      {
+         "position" : {
+            "x" : 204,
+            "y" : 102
+         },
+         "label" : "t",
+         "id" : "a9nPX-E3Y",
+         "type" : "xod/patch-nodes/input-number"
+      },
+      {
+         "position" : {
+            "x" : 68,
+            "y" : 204
+         },
+         "type" : "xod/patch-nodes/not-implemented-in-xod",
+         "id" : "jAWx49fNk"
+      },
+      {
+         "position" : {
+            "y" : 306,
+            "x" : 68
+         },
+         "label" : "adafruitneopixel",
+         "id" : "yHHnTzARq",
+         "type" : "xod/patch-nodes/output-self"
+      }
+   ]
+}

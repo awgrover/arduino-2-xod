@@ -1,0 +1,53 @@
+{
+   "nodes" : [
+      {
+         "position" : {
+            "y" : 224,
+            "x" : 10
+         },
+         "description" : "Outputs value of `T` if `COND` is true, and `F` otherwise",
+         "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel",
+         "label" : "R",
+         "id" : "S13xLCuHvkW"
+      },
+      {
+         "position" : {
+            "x" : 10,
+            "y" : 16
+         },
+         "description" : "Condition value",
+         "id" : "S1yZIA_rDJZ",
+         "type" : "xod/patch-nodes/input-boolean",
+         "label" : "COND"
+      },
+      {
+         "type" : "xod/patch-nodes/not-implemented-in-xod",
+         "id" : "abstract",
+         "position" : {
+            "y" : 100,
+            "x" : 100
+         }
+      },
+      {
+         "position" : {
+            "y" : 16,
+            "x" : 266
+         },
+         "label" : "F",
+         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
+         "id" : "r1AgIROHDJW",
+         "description" : "Value to be output if condition is false"
+      },
+      {
+         "position" : {
+            "x" : 138,
+            "y" : 16
+         },
+         "id" : "ryTeUROHD1b",
+         "label" : "T",
+         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
+         "description" : "Value to be output if condition is true"
+      }
+   ],
+   "description" : "Outputs either input value depending on condition"
+}

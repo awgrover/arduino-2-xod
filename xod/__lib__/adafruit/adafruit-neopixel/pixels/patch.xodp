@@ -1,0 +1,49 @@
+{
+   "nodes" : [
+      {
+         "label" : "adafruitneopixel",
+         "id" : "mSVItJ-ue",
+         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
+         "position" : {
+            "x" : 68,
+            "y" : 102
+         }
+      },
+      {
+         "position" : {
+            "y" : 102,
+            "x" : 136
+         },
+         "label" : "val",
+         "type" : "xod/patch-nodes/input-number",
+         "id" : "puEHjuoTU"
+      },
+      {
+         "type" : "xod/patch-nodes/not-implemented-in-xod",
+         "id" : "Rl4M-CXDg",
+         "position" : {
+            "x" : 68,
+            "y" : 204
+         }
+      },
+      {
+         "position" : {
+            "x" : 68,
+            "y" : 306
+         },
+         "label" : "out",
+         "type" : "xod/patch-nodes/output-number",
+         "id" : "nms6uFsks"
+      },
+      {
+         "label" : "dev",
+         "id" : "CBizYjWNv",
+         "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel",
+         "position" : {
+            "x" : 136,
+            "y" : 306
+         }
+      }
+   ],
+   "description" : "property "
+}

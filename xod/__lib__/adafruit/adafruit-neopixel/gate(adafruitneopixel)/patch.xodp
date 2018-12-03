@@ -1,0 +1,44 @@
+{
+   "nodes" : [
+      {
+         "boundLiterals" : {
+            "__out__" : "True"
+         },
+         "position" : {
+            "x" : 68,
+            "y" : 0
+         },
+         "description" : "Whether values should pass through",
+         "id" : "B1P1nFwaM",
+         "type" : "xod/patch-nodes/input-boolean",
+         "label" : "EN"
+      },
+      {
+         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
+         "label" : "IN",
+         "id" : "SJ-1mZPTz",
+         "position" : {
+            "y" : 0,
+            "x" : 0
+         }
+      },
+      {
+         "position" : {
+            "y" : 204,
+            "x" : 0
+         },
+         "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel",
+         "label" : "OUT",
+         "id" : "OkPg7GDaW"
+      },
+      {
+         "position" : {
+            "x" : 0,
+            "y" : 102
+         },
+         "type" : "xod/patch-nodes/not-implemented-in-xod",
+         "id" : "rJZl7twTQ"
+      }
+   ],
+   "description" : "Allows values to pass through only if EN pin is set to true"
+}
