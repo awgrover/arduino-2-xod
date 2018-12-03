@@ -250,4 +250,10 @@ To make this usable by a normal person, there should be some automation for gett
 - [ ] renaming a to-bus should rename all from-bus that are currently the same
 - [ ] Instructions for manually installing arduino libs isn't quite right: ~/xod/__ardulib__/$arduinolibrary
 - [ ] express constructor, static, enums, methods
+- [ ] a lot of patches in my library slows down xod startup dramatically
+- [ ] a pity you couldn't `template<T t1> evaluate(...) { ... }` for the abstract nodes in cpp. code is indentical for core specializations
+- [ ] a generic delay: t1 instead of set, pass it through instead of pulse
 
+
+No implementation found in leaf patch
+No implementation for adafruit/adafruit-neopixel/gate(adafruitneopixel) found.
