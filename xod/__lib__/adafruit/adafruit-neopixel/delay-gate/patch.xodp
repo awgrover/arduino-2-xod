@@ -1,0 +1,133 @@
+{
+  "description": "Start the delay (T seconds) on SET pulse.\nWhen the delay expires, output the val.",
+  "links": [
+    {
+      "id": "BJJkFw4JV",
+      "input": {
+        "nodeId": "HkrTuPNyN",
+        "pinKey": "B1P1nFwaM"
+      },
+      "output": {
+        "nodeId": "H1qCuPNyE",
+        "pinKey": "r1if8ROSDJ-"
+      }
+    },
+    {
+      "id": "BJjEtP41V",
+      "input": {
+        "nodeId": "HkwVFv4JN",
+        "pinKey": "__in__"
+      },
+      "output": {
+        "nodeId": "HkrTuPNyN",
+        "pinKey": "OkPg7GDaW"
+      }
+    },
+    {
+      "id": "H1DWtD41N",
+      "input": {
+        "nodeId": "HyoTOP4k4",
+        "pinKey": "SkSuD6LMb"
+      },
+      "output": {
+        "nodeId": "S1QWYDE1E",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "HJAAdPVJE",
+      "input": {
+        "nodeId": "H1qCuPNyE",
+        "pinKey": "ry3zLA_Bv1Z"
+      },
+      "output": {
+        "nodeId": "HyoTOP4k4",
+        "pinKey": "HkU3vNoTW"
+      }
+    },
+    {
+      "id": "HyIgFw4yN",
+      "input": {
+        "nodeId": "HyoTOP4k4",
+        "pinKey": "Skre8ROSv1-"
+      },
+      "output": {
+        "nodeId": "SyrlKvEJN",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "Sk3MKP4yV",
+      "input": {
+        "nodeId": "HkrTuPNyN",
+        "pinKey": "SJ-1mZPTz"
+      },
+      "output": {
+        "nodeId": "HkwftDNk4",
+        "pinKey": "__out__"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "id": "H1qCuPNyE",
+      "position": {
+        "x": 238,
+        "y": 204
+      },
+      "type": "xod/core/not"
+    },
+    {
+      "id": "HkrTuPNyN",
+      "position": {
+        "x": 204,
+        "y": 306
+      },
+      "type": "xod/core/gate"
+    },
+    {
+      "id": "HkwVFv4JN",
+      "label": "gated-val",
+      "position": {
+        "x": 204,
+        "y": 408
+      },
+      "type": "xod/patch-nodes/output-t1"
+    },
+    {
+      "id": "HkwftDNk4",
+      "label": "val",
+      "position": {
+        "x": 102,
+        "y": 0
+      },
+      "type": "xod/patch-nodes/input-t1"
+    },
+    {
+      "id": "HyoTOP4k4",
+      "position": {
+        "x": 204,
+        "y": 102
+      },
+      "type": "xod/core/delay"
+    },
+    {
+      "id": "S1QWYDE1E",
+      "label": "SET",
+      "position": {
+        "x": 204,
+        "y": 0
+      },
+      "type": "xod/patch-nodes/input-pulse"
+    },
+    {
+      "id": "SyrlKvEJN",
+      "label": "T",
+      "position": {
+        "x": 272,
+        "y": 0
+      },
+      "type": "xod/patch-nodes/input-number"
+    }
+  ]
+}
