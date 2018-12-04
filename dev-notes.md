@@ -1,14 +1,4 @@
-# Automatic XOD Library from Arduino Library
-
-~Up till now ([XOD](https://xod.id) v0.25.2 2018-11-06), it has required a degree of expertise to make [Arduino IDE libraries](https://www.arduino.cc/en/Guide/Libraries) [usable in XOD](https://xod.io/docs/guide/wrapping-arduino-libraries). This is quite a barrier to using XOD for many projects. For example, XOD does not have the NeoPixel library, and Neopixels are very popular.
-
-## Hypothesis
-
-~It ought to be possible to parse the .h file of a typical Arduino Library and produce a low-level XOD library automatically: a class node, and accessor/method nodes. Cf. [Wrapping Class-based Arduino Libraries](https://xod.io/docs/guide/wrapping-arduino-libraries/).
-
-~This should give a typical XOD user a good chance of just using the new XOD nodes, in a way parallel with the documentation/tutorials that come with that Arduino IDE library.
-
-~A high-level (normal user) library can also be built on top of that, purely in XOD. That should expand the pool of contributors, and make high-level node-libraries more common.
+# Dev-notes: Automatic Arduino Library to XOD library
 
 ## Example: NeoPixel
 
@@ -252,6 +242,9 @@ To make this usable by a normal person, there should be some automation for gett
 - [ ] "local" library. it is annoying to copy a patch from one project to another. a dumping ground would be nice: drag a patch into dumping ground. now it is always available, as if a library. 
 - [ ] what if paste would paste the json into text files? and if pasting text would make a patch if it was good json?
 - [ ] is the "recently used" list in file-open acting weird? I notice it shows nothing if it's been a while (30 minutes? 1 hour?). Also, doesn't seem to show recent projects, only the most-recent?
+- [ ] examples in a library should be projects: and can have their own sub-patches.
+- [ ] select a set of nodes. "make patch". copies them to a new patch, any dangling in/outs get turned into input-xx automagically copying the name from the actual input name, and the patch replaces the "lifted" nodes. yes yes. 
+-- this suggests some ui scripting extension framework.
 
 *BUG*
 put some bad stuff in a lib, get red error notice
@@ -274,6 +267,7 @@ constructors
 Philosophy of XOD
 [ ] the main way I see of doing things is to thread the object through the patch(methods). This enforces sequence. Using the abstract `gate`, I can also control when a patch fires (and then can use a bus-node for the object). That makes sense to me for simple patches, like `begin`.
 -- you've thought a lot more about how to program in XOD, and I don't think in XOD as well.
+-- you seem to treat the object as not-dirty-relevant, and use a trigger input to thread things. it is more tedious to wire up...
 -- How should a more interesting patch, like `set-pixel-color` work? Should it "fire" when the object is dirty? When any of the rgb is dirty? When anything is dirty? Should it not consider the object for is-dirty? I get confused thinking about it. What are patterns that work?
 -- Should simple "verb" patches ignore the object is-dirty? And thus have a "trigger"? It's seems easy to thread stuff together with the object, and not have to generate a trigger pulse all the time. E.g. `clear`.
 -- how do you "gang" several inputs? e.g. a `set-pixel-color` should wait for all of the `rgb` to be changed, not just a `r` updated. trigger is one way, but that seems tedious if you want to update just `r`. It's like one way is "gate this arg list", and another is "fire on any updated". what is best practice here?
