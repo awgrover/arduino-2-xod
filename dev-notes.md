@@ -1,14 +1,14 @@
 # Automatic XOD Library from Arduino Library
 
-Up till now ([XOD](https://xod.id) v0.25.2 2018-11-06), it has required a degree of expertise to make [Arduino IDE libraries](https://www.arduino.cc/en/Guide/Libraries) [usable in XOD](https://xod.io/docs/guide/wrapping-arduino-libraries). This is quite a barrier to using XOD for many projects. For example, XOD does not have the NeoPixel library, and Neopixels are very popular.
+~Up till now ([XOD](https://xod.id) v0.25.2 2018-11-06), it has required a degree of expertise to make [Arduino IDE libraries](https://www.arduino.cc/en/Guide/Libraries) [usable in XOD](https://xod.io/docs/guide/wrapping-arduino-libraries). This is quite a barrier to using XOD for many projects. For example, XOD does not have the NeoPixel library, and Neopixels are very popular.
 
 ## Hypothesis
 
-It ought to be possible to parse the .h file of a typical Arduino Library and produce a low-level XOD library automatically: a class node, and accessor/method nodes. Cf. [Wrapping Class-based Arduino Libraries](https://xod.io/docs/guide/wrapping-arduino-libraries/).
+~It ought to be possible to parse the .h file of a typical Arduino Library and produce a low-level XOD library automatically: a class node, and accessor/method nodes. Cf. [Wrapping Class-based Arduino Libraries](https://xod.io/docs/guide/wrapping-arduino-libraries/).
 
-This should give a typical XOD user a good chance of just using the new XOD nodes, in a way parallel with the documentation/tutorials that come with that Arduino IDE library.
+~This should give a typical XOD user a good chance of just using the new XOD nodes, in a way parallel with the documentation/tutorials that come with that Arduino IDE library.
 
-A high-level (normal user) library can also be built on top of that, purely in XOD. That should expand the pool of contributors, and make high-level node-libraries more common.
+~A high-level (normal user) library can also be built on top of that, purely in XOD. That should expand the pool of contributors, and make high-level node-libraries more common.
 
 ## Example: NeoPixel
 
@@ -248,11 +248,52 @@ To make this usable by a normal person, there should be some automation for gett
 - [ ] a pity you couldn't `template<T t1> evaluate(...) { ... }` for the abstract nodes in cpp. code is indentical for core specializations
 - [ ] a generic delay: t1 instead of set, pass it through instead of pulse
 - [ ] an "all" node, takes many t1's, outputs a t1 only when all t1's come in (all dirty)
+- [ ] add-node shortcut w/o double clicking. like '??'
+- [ ] "local" library. it is annoying to copy a patch from one project to another. a dumping ground would be nice: drag a patch into dumping ground. now it is always available, as if a library. 
+- [ ] what if paste would paste the json into text files? and if pasting text would make a patch if it was good json?
+- [ ] is the "recently used" list in file-open acting weird? I notice it shows nothing if it's been a while (30 minutes? 1 hour?). Also, doesn't seem to show recent projects, only the most-recent?
 
 *BUG*
 put some bad stuff in a lib, get red error notice
 ERROR. The error has no formatter. Report the issue to XOD developers.
 Nothing relevant in dev tools. maybe a Error: ENOENT: no such file or directory, open '/opt/XOD IDE/resources/app-update.yml'
- 
+----
+[ ] usage of prototype
+[ ] example: RGB detector
 
+[ ] naming/uploading
+-- easy to find == same author/name as arduino library. but conflicts with uploading privileges. an individual should be allowed to work on auto-converting I think? suggestion: XOD website feature: auto-convert, goes into libraries under probation. a xoder can test/improve. what to do with improvements/wrappers? Upload as normal user library with some flag: "improves/fixes/wraps arduino lib", and somehow gets put with the auto-converted one.
+-- implies a "rating" of a library: probation, limited testing, has (comprehensive) examples, used-a-lot, and even quality ratings. Use github info (e.g. bugs)?
+-- adding examples is similar: (re)construct the examples and include with the auto-converted library
+-- but, mark as low-level/rough. adafruit/adafruit-neopixel-lowlevel ?
+[ ] how to do versions? There's the source version, and the conversion/fix version. ubuntu runs them together upstream-ubuntu.
+
+constructors
+[ ] you seem to want "neopixel-device" for constructors. I find that hard to pick out in the list of patches in a library. Some sorting to the top for "constructors" would be nice.
+
+Philosophy of XOD
+[ ] the main way I see of doing things is to thread the object through the patch(methods). This enforces sequence. Using the abstract `gate`, I can also control when a patch fires (and then can use a bus-node for the object). That makes sense to me for simple patches, like `begin`.
+-- you've thought a lot more about how to program in XOD, and I don't think in XOD as well.
+-- How should a more interesting patch, like `set-pixel-color` work? Should it "fire" when the object is dirty? When any of the rgb is dirty? When anything is dirty? Should it not consider the object for is-dirty? I get confused thinking about it. What are patterns that work?
+-- Should simple "verb" patches ignore the object is-dirty? And thus have a "trigger"? It's seems easy to thread stuff together with the object, and not have to generate a trigger pulse all the time. E.g. `clear`.
+-- how do you "gang" several inputs? e.g. a `set-pixel-color` should wait for all of the `rgb` to be changed, not just a `r` updated. trigger is one way, but that seems tedious if you want to update just `r`. It's like one way is "gate this arg list", and another is "fire on any updated". what is best practice here?
+-- I output a "done" pulse. should be "did" for a pulse. But, should it be a pulse or boolean? E.g. after set-pixel-color, do show. so thread them somehow.
+
+enums
+[ ] need them! not clear how to do the right thing auto-converting. neopixel is NOT enums, but a bunch of #defines. sigh.
+-- does this implie some kind of per-ard-lib rules for subsequent conversions? Or options? like `./ard2xod --defines2enums pixel-order='NEO_[RGB]*'` that adds stuff after main autoconvert step? as part of the web-interface would be cool.
+
+clang cindex ast issues for .h files
+[ ] skips some methods for no apparent reason: ex XXX
+[ ] skips arguments if not named in the signature declaration: e.g. void fubar(int);` Haven't checked the .cpp
+[ ] documentation. inlinedocs (~javadoc) style would be nice to extract and use.
+
+Abstract
+[ ] add generics. "if-else" should be fully generic, never need a specialized.
+
+Tools
+[ ] can I ask xod for the $xoddir, $xodlibdir?
+
+[ ] how to reference the original library, especially it's readme, and links to tutorials.
+[ ] examples need to be manually (re)constructed.
 
