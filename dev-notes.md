@@ -245,6 +245,7 @@ To make this usable by a normal person, there should be some automation for gett
 - [ ] examples in a library should be projects: and can have their own sub-patches.
 - [ ] select a set of nodes. "make patch". copies them to a new patch, any dangling in/outs get turned into input-xx automagically copying the name from the actual input name, and the patch replaces the "lifted" nodes. yes yes. 
 -- this suggests some ui scripting extension framework.
+- [ ] make from-bus from a to-bus: like copy, so you get the name right.
 
 *BUG*
 put some bad stuff in a lib, get red error notice
