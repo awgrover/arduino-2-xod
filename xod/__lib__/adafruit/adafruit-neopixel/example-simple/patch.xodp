@@ -229,6 +229,18 @@
       }
     },
     {
+      "content": "But, apparently you have to show too",
+      "id": "Skio1jNyN",
+      "position": {
+        "x": -204,
+        "y": 510
+      },
+      "size": {
+        "height": 51,
+        "width": 170
+      }
+    },
+    {
       "content": "Show the new color at each step.\n",
       "id": "r1lIl9EkN",
       "position": {
@@ -310,6 +322,17 @@
       "output": {
         "nodeId": "rJ8XZcEkV",
         "pinKey": "H1E8AuSPkZ"
+      }
+    },
+    {
+      "id": "BJ1sksEk4",
+      "input": {
+        "nodeId": "ByW85tEJE",
+        "pinKey": "__in__"
+      },
+      "output": {
+        "nodeId": "Bk7IyiNkE",
+        "pinKey": "orqaWh9wP"
       }
     },
     {
@@ -401,6 +424,17 @@
       }
     },
     {
+      "id": "H1F51j4kV",
+      "input": {
+        "nodeId": "Bk7IyiNkE",
+        "pinKey": "lgWdONkUE"
+      },
+      "output": {
+        "nodeId": "BkMGut4J4",
+        "pinKey": "NnjW3vo6d"
+      }
+    },
+    {
       "id": "H1GPwnKEJN",
       "input": {
         "nodeId": "S1RZOY4JE",
@@ -489,14 +523,14 @@
       }
     },
     {
-      "id": "S1w2TFNJE",
+      "id": "S125JsNy4",
       "input": {
-        "nodeId": "ByW85tEJE",
+        "nodeId": "rygE5KNy4",
         "pinKey": "__in__"
       },
       "output": {
-        "nodeId": "BkMGut4J4",
-        "pinKey": "UcHCmuhyr"
+        "nodeId": "Bk7IyiNkE",
+        "pinKey": "PYc3k1JOp"
       }
     },
     {
@@ -508,17 +542,6 @@
       "output": {
         "nodeId": "SJvVz5EJE",
         "pinKey": "jda4QYeYo"
-      }
-    },
-    {
-      "id": "SJX26tN1V",
-      "input": {
-        "nodeId": "rygE5KNy4",
-        "pinKey": "__in__"
-      },
-      "output": {
-        "nodeId": "BkMGut4J4",
-        "pinKey": "NnjW3vo6d"
       }
     },
     {
@@ -691,6 +714,14 @@
       "type": "xod/core/count"
     },
     {
+      "id": "Bk7IyiNkE",
+      "position": {
+        "x": -272,
+        "y": 510
+      },
+      "type": "adafruit/adafruit-neopixel/show"
+    },
+    {
       "id": "BkA32K4kV",
       "label": "neoRGB",
       "position": {
@@ -728,7 +759,7 @@
       "label": "SETUP",
       "position": {
         "x": -238,
-        "y": 510
+        "y": 612
       },
       "type": "xod/patch-nodes/to-bus"
     },
@@ -1010,7 +1041,7 @@
       "label": "neopixel",
       "position": {
         "x": -272,
-        "y": 510
+        "y": 612
       },
       "type": "xod/patch-nodes/to-bus"
     }

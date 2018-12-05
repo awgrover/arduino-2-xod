@@ -84,6 +84,12 @@ Blue Green Red      164
 
 It was easier to repeat the pattern. But, quite close to the original example.
 
+### Adafruit Library Example: "simple_new_operator"
+
+This is the same as above, but using "new" in c++. Not relevant for XOD.
+
+
+
 # Playing With My Converter
 
 Yikes! It's a hack! clanglib -> python bindings -> python program -> json -> perl. 
