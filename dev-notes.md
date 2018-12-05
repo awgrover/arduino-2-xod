@@ -273,6 +273,7 @@ Philosophy of XOD
 -- Should simple "verb" patches ignore the object is-dirty? And thus have a "trigger"? It's seems easy to thread stuff together with the object, and not have to generate a trigger pulse all the time. E.g. `clear`.
 -- how do you "gang" several inputs? e.g. a `set-pixel-color` should wait for all of the `rgb` to be changed, not just a `r` updated. trigger is one way, but that seems tedious if you want to update just `r`. It's like one way is "gate this arg list", and another is "fire on any updated". what is best practice here?
 -- I output a "done" pulse. should be "did" for a pulse. But, should it be a pulse or boolean? E.g. after set-pixel-color, do show. so thread them somehow.
+[ ] doing the "simple" example, I discovered that the threading is probably better done by pulses. Then "select" is usable. However, then "gate" is not. Will have to see how things go.
 
 enums
 [ ] need them! not clear how to do the right thing auto-converting. neopixel is NOT enums, but a bunch of #defines. sigh.
