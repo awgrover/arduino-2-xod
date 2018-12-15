@@ -66,7 +66,7 @@ def get_text(node):
     if kind == 'CXX_METHOD':
         #print("Method:",text, node.access_specifier.name)
         canonical_return = str(node.result_type.get_canonical().kind) + ":" + str(node.result_type.get_canonical().get_size())
-        return '{{ node => "{}", actual_type => "{}", type => "{}", type_name => "{}", text => "{}", return_actual_type => "{}", return_type => "{}", access => "{}", '.format(kind, node.type.kind, canon_type, node.result_type.spelling, text, node.result_type.kind, canonical_return, node.access_specifier.name)
+        return '{{ node => "{}", actual_type => "{}", type => "{}", type_name => "{}", text => "{}", return_actual_type => "{}", return_type => "{}", access => "{}", line => {}, '.format(kind, node.type.kind, canon_type, node.result_type.spelling, text, node.result_type.kind, canonical_return, node.access_specifier.name, node.location.line)
     else:
         return '{{ node => "{}", actual_type => "{}", type => "{}", type_name=>"{}", text => "{}", access => "{}", '.format(kind, node.type.kind, canon_type, node.type.spelling, text, node.access_specifier.name)
 
@@ -77,7 +77,9 @@ if len(sys.argv) != 2:
 clang.cindex.Config.set_library_file(libclang)
 index = clang.cindex.Index.create()
 # translation_unit = index.parse(sys.argv[1], ['-x', 'c++', '-std=c++11', '-D__CODE_GENERATOR__'])
-translation_unit = index.parse(sys.argv[1], ['-x', 'c++', '-std=c++11', '-D__CODE_GENERATOR__', '-fparse_all_comments'],None,1)
+# attempt to #include ard stuff: causes memory error
+# translation_unit = index.parse(sys.argv[1], ['-x', 'c++', '-std=c++11', '-D__CODE_GENERATOR__', '-fparse-all-comments', '-DARDUINO=10607', '-I/mnt/auger/home/awgrover/xod/__packages__/packages/arduino/hardware/avr/1.6.21/cores/arduino' ],None,1)
+translation_unit = index.parse(sys.argv[1], ['-x', 'c++', '-std=c++11', '-D__CODE_GENERATOR__', '-fparse-all-comments', '-DARDUINO=10607' ],None,1)
 # fixme: put in error detect. the ast will be unfinished if there are errors (especially depthwise)
 # e.g. see https://github.com/jessevdk/cldoc/blob/master/cldoc/tree.py .process()
 #print(asciitree.LeftAligned(traverse = clang_traverse())(translation_unit.cursor) )
@@ -86,20 +88,33 @@ def traverse(depth, cursor):
 
     pos = -1;
     for node in enumerate(get_children(cursor)):
+        # children is these are all clang.cindex.Cursor
         pos, children = node
         if pos==0:
             print "children => ["
-        # children is these are all clang.cindex.Cursor
-        print "  " * depth,get_text(children),
-        if depth > 10:
-            exit(1)
-        printed = traverse(depth+1, children)
-        if printed >= 0:
-            print "  " * (depth+1),"]";
-            print "  " * depth,;
-        print "},"
+
+        # descend if not-in-a-file (root stuff), or in file-of-interest
+        if not children.location.file or children.location.file.name == sys.argv[1]:
+
+            # don't describe nodes that aren't in a file
+            if children.location.file:
+                print "  " * depth,get_text(children)
+
+            if depth > 30: # arbitrary limit
+                exit(1)
+
+            printed = traverse(depth+1, children)
+
+            if printed >= 0:
+                print "  " * (depth+1),"]";
+                print "  " * depth,;
+
+            if children.location.file:
+                print "},"
     return pos
 
 print "{"
 traverse(0, translation_unit.cursor)
 print "]}"
+for diag in translation_unit.diagnostics:
+    print >> sys.stderr, 'DIAG ',diag

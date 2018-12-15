@@ -88,6 +88,12 @@ It was easier to repeat the pattern. But, quite close to the original example.
 
 This is the same as above, but using "new" in c++. Not relevant for XOD.
 
+### Adafruit Library Example: "strandtest" -- several patterns
+
+The automatic conversion of the library skipped `setBrightness()`, which this uses. It skipped it because the signature (declaration) in .h is: `void setBrightness(uint8_t)`, and the argument has no name. `fill()` is also skipped, possibly because of the default values for the arguments? This is acting like an inherent limitation of the `cindex` interface to `libclang`. 
+
+I could just be doing it wrong.
+
 
 
 # Playing With My Converter

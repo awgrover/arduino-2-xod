@@ -1,5 +1,7 @@
 # Dev-notes: Automatic Arduino Library to XOD library
 
+
+
 ## Example: NeoPixel
 
 Using as an example throughout, the Adafruit [NeoPixel V1.1.7 library](https://github.com/adafruit/Adafruit_NeoPixel) library. Github based libraries are the easiest.
@@ -28,6 +30,11 @@ How would you handle "asynch" actions?
 
 `./ard2xod library /home/awgrover/Arduino/libraries/Adafruit_NeoPixel`
 
+
+- [ ] Deduce license?
+- [ ] version doesn't show in XOD
+-- make a readme patch
+
 ### Neopixel example
 
 * Arduino IDE lib: `~/Arduino/libraries/Adafruit_NeoPixel`
@@ -52,10 +59,6 @@ File `~/xod/__lib__/adafruit/adafruit_neopixel/project.xod` (nb. lower case):
        "description" : "Arduino library for controlling single-wire-based LED pixels and strip.\nArduino library for controlling single-wire-based LED pixels and strip.",
        "version" : "1.1.7"
     }
-
-Deduce license?
-- [ ] version doesn't show in XOD
--- make a readme patch
 
 ## Libary Class = Node w/State and Bus
 
@@ -87,8 +90,7 @@ Getting the full AST is problematic. However, several language bindings to the "
 - [ ] pointer types (return): uint8 * getPixels()
 -- convert that to a ref type, provide utils?
 - [ ] pointer types (args)
-- [ ] unnamed args: sine8(uint8_t) const,
-- [ ] skip statics
+- [ ] skip statics, or make diff kind of node
 
 ./ard2xod methods /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
 
@@ -222,6 +224,45 @@ To make this usable by a normal person, there should be some automation for gett
 * Fixup code with with options like "once only" -> "if (!isSettingUp()) return;"
 * Use common inline doc comments as descriptions for xod
 
+# Current Plan
+- [ ] stabilise i/o node ids (everything breaks when I regen): 
+-- [ ] comment out/disable the #include enablement, so we can continue working
+-- [ ] convert existing examples to use new ids
+--- [ ] name/number i/o's scheme. 
+
+- [ ] convert to pulse-chain
+-- [ ] test
+
+- [ ] statics
+-- [ ] skip
+-- [ ] add back in properly
+
+- [x] look into diagnostic messages from libclang. maybe it's telling us something. maybe we need ` std=c++11` cf. https://stackoverflow.com/questions/37098725/parsing-with-libclang-unable-to-parse-certain-tokens-python-in-windows.
+-- it was #includes, experimented some
+```
+translation_unit = index.parse(sys.argv[1], args)
+for diag in translation_unit.diagnostics:
+    print diag
+```
+- [ ] try enabling include of ard types,
+-- [ ] unnamed args: sine8(uint8_t) const, getting skipped
+-- [ ] causes memory error
+-- [ ] was experimenting with "filtering", wasn't working yet
+-- [ ] try the clang tool `clang -Xclang -ast-dump -fsyntax-only foo.cc` or `clang++ -emit-ast foo.cc`
+or CLANG_LIBRARY_PATH=$(llvm-config --libdir)
+
+see https://mikeash.com/pyblog/friday-qa-2014-01-24-introduction-to-libclang.html
+
+clang cindex ast issues for .h files
+[ ] skips some methods for no apparent reason: ex XXX
+[ ] skips arguments if not named in the signature declaration: e.g. void fubar(int);` Haven't checked the .cpp
+[ ] documentation. inlinedocs (~javadoc) style would be nice to extract and use.
+
+
+
+
+# XOD Issues
+
 - [ ] want to double-click make comment. '//'
 - [ ] want to style comments to make sections 
 - [ ] a library should have a readme? or are examples good enough?
@@ -255,7 +296,7 @@ Nothing relevant in dev tools. maybe a Error: ENOENT: no such file or directory,
 [ ] usage of prototype
 [ ] example: RGB detector
 
-[ ] naming/uploading
+[x] naming/uploading
 -- easy to find == same author/name as arduino library. but conflicts with uploading privileges. an individual should be allowed to work on auto-converting I think? suggestion: XOD website feature: auto-convert, goes into libraries under probation. a xoder can test/improve. what to do with improvements/wrappers? Upload as normal user library with some flag: "improves/fixes/wraps arduino lib", and somehow gets put with the auto-converted one.
 -- implies a "rating" of a library: probation, limited testing, has (comprehensive) examples, used-a-lot, and even quality ratings. Use github info (e.g. bugs)?
 -- adding examples is similar: (re)construct the examples and include with the auto-converted library
@@ -274,15 +315,11 @@ Philosophy of XOD
 -- how do you "gang" several inputs? e.g. a `set-pixel-color` should wait for all of the `rgb` to be changed, not just a `r` updated. trigger is one way, but that seems tedious if you want to update just `r`. It's like one way is "gate this arg list", and another is "fire on any updated". what is best practice here?
 -- I output a "done" pulse. should be "did" for a pulse. But, should it be a pulse or boolean? E.g. after set-pixel-color, do show. so thread them somehow.
 [ ] doing the "simple" example, I discovered that the threading is probably better done by pulses. Then "select" is usable. However, then "gate" is not. Will have to see how things go.
+[ ] impedence mismatch: pots 0..1, rgb 255
 
 enums
 [ ] need them! not clear how to do the right thing auto-converting. neopixel is NOT enums, but a bunch of #defines. sigh.
 -- does this implie some kind of per-ard-lib rules for subsequent conversions? Or options? like `./ard2xod --defines2enums pixel-order='NEO_[RGB]*'` that adds stuff after main autoconvert step? as part of the web-interface would be cool.
-
-clang cindex ast issues for .h files
-[ ] skips some methods for no apparent reason: ex XXX
-[ ] skips arguments if not named in the signature declaration: e.g. void fubar(int);` Haven't checked the .cpp
-[ ] documentation. inlinedocs (~javadoc) style would be nice to extract and use.
 
 Abstract
 [ ] add generics. "if-else" should be fully generic, never need a specialized.
@@ -292,4 +329,5 @@ Tools
 
 [ ] how to reference the original library, especially it's readme, and links to tutorials.
 [ ] examples need to be manually (re)constructed.
+
 
