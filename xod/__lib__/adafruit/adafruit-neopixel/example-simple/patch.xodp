@@ -1,1049 +1,1049 @@
 {
-   "comments" : [
-      {
-         "content" : "How bright is light green? 30 seems not blinding, and less power",
-         "id" : "B17Gy5NkN",
-         "position" : {
-            "x" : 136,
-            "y" : -306
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 238
-         }
+  "comments": [
+    {
+      "content": "How bright is light green? 30 seems not blinding, and less power",
+      "id": "B17Gy5NkN",
+      "position": {
+        "x": 136,
+        "y": -306
       },
-      {
-         "content" : "Use the debugger to watch the step go 0..pix-ct(-1),\nand the ==0 detect it going around to zero,\nand the clear firing",
-         "id" : "Bk-3D9VJV",
-         "position" : {
-            "x" : 238,
-            "y" : 1428
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 408
-         }
-      },
-      {
-         "content" : "tricky: and then copy the object from the ==0 branch, or the !=0 branch",
-         "id" : "ByNLdc4JE",
-         "position" : {
-            "x" : -272,
-            "y" : 1938
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 204
-         }
-      },
-      {
-         "content" : "If you are using more than 5 neopixels, you should use an external power supply for the neopixel strip.\nThe arduino/laptop-usb may brown out otherwise.\nThe brightness is set low in this example, so should actually allow more neopixels than 5, but an external power supply is the right thing to do.",
-         "id" : "Byc819V1N",
-         "position" : {
-            "x" : 136,
-            "y" : -714
-         },
-         "size" : {
-            "height" : 153,
-            "width" : 442
-         }
-      },
-      {
-         "content" : "You should set this to the number of pixels,\nOr there will be a delay before the pattern repeats,\nor only some of the pixels will be used.",
-         "id" : "H12khtVJN",
-         "position" : {
-            "x" : -238,
-            "y" : -408
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 408
-         }
-      },
-      {
-         "content" : "\"slowness\" how long each step of the pattern takes",
-         "id" : "H1DQjYE1E",
-         "position" : {
-            "x" : -238,
-            "y" : -102
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 170
-         }
-      },
-      {
-         "content" : "which triggers \"clear\"",
-         "id" : "HJHSu9EyN",
-         "position" : {
-            "x" : -272,
-            "y" : 1836
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 204
-         }
-      },
-      {
-         "content" : "Generate the steps\nModulo makes it repeat from 0..pix-ct(-1)",
-         "id" : "Hk9yRYEJN",
-         "position" : {
-            "x" : -272,
-            "y" : 714
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 170
-         }
-      },
-      {
-         "content" : "When the pattern restarts (step==0), clear the string.\n",
-         "id" : "HkIedcV1V",
-         "position" : {
-            "x" : -272,
-            "y" : 1632
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 204
-         }
-      },
-      {
-         "content" : "and the \"threading\" of the object keeps things in order",
-         "id" : "HkJqucEyV",
-         "position" : {
-            "x" : -272,
-            "y" : 2142
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 204
-         }
-      },
-      {
-         "content" : "Turn all pixels light green, one by one.\nRepeat.\nBased on the Adafruit Neopixel example \"simple\",\nAdjust values below as necessary",
-         "id" : "Hkz4FK4yE",
-         "position" : {
-            "x" : -306,
-            "y" : -714
-         },
-         "size" : {
-            "height" : 153,
-            "width" : 408
-         }
-      },
-      {
-         "content" : "Do one pattern:\nLight pixels one at a time.\nstep==0 signals start-again",
-         "id" : "HyFae54JN",
-         "position" : {
-            "x" : -272,
-            "y" : 1428
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 238
-         }
-      },
-      {
-         "content" : "Clears the string too",
-         "id" : "S1IcY9N14",
-         "position" : {
-            "x" : -204,
-            "y" : 408
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 170
-         }
-      },
-      {
-         "content" : "You may have to set RGB to the right value. See the \"revelation\" examples to help you.",
-         "id" : "SJUK_tNJV",
-         "position" : {
-            "x" : -238,
-            "y" : -204
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 272
-         }
-      },
-      {
-         "content" : "SETUP Values",
-         "id" : "SJmE2K4yE",
-         "position" : {
-            "x" : -306,
-            "y" : -510
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 170
-         }
-      },
-      {
-         "content" : "The clock serves as \"delay()\".\nIncrease count every n seconds",
-         "id" : "SJnYecEkV",
-         "position" : {
-            "x" : -170,
-            "y" : 1020
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 238
-         }
-      },
-      {
-         "content" : "Tricky: on ==0, copy the object through to clear",
-         "id" : "SkI7_94y4",
-         "position" : {
-            "x" : -272,
-            "y" : 1734
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 204
-         }
-      },
-      {
-         "content" : "Start clock after setup",
-         "id" : "SkL5qY4kN",
-         "position" : {
-            "x" : -170,
-            "y" : 918
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 102
-         }
-      },
-      {
-         "content" : "SETUP",
-         "id" : "SkiNpt4JN",
-         "position" : {
-            "x" : -272,
-            "y" : 102
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 170
-         }
-      },
-      {
-         "content" : "But, apparently you have to show too",
-         "id" : "Skio1jNyN",
-         "position" : {
-            "x" : -204,
-            "y" : 510
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 170
-         }
-      },
-      {
-         "content" : "Show the new color at each step.\n",
-         "id" : "r1lIl9EkN",
-         "position" : {
-            "x" : -272,
-            "y" : 2244
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 170
-         }
-      },
-      {
-         "content" : "You should set this to the correct pin",
-         "id" : "rJ4TdFEyV",
-         "position" : {
-            "x" : -238,
-            "y" : -306
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 170
-         }
-      },
-      {
-         "content" : "Double-click to edit comment",
-         "id" : "rkPtD9VJN",
-         "position" : {
-            "x" : 34,
-            "y" : 102
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 136
-         }
-      },
-      {
-         "content" : "0..pix-ct(-1)\nand repeat",
-         "id" : "rkhm0F4k4",
-         "position" : {
-            "x" : -204,
-            "y" : 1224
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 136
-         }
-      },
-      {
-         "content" : "If we had \"act/do/update\" as input pulses to all methods, this pattern might be nicer, using select",
-         "id" : "ryum9c4y4",
-         "position" : {
-            "x" : 272,
-            "y" : 1734
-         },
-         "size" : {
-            "height" : 51,
-            "width" : 340
-         }
+      "size": {
+        "height": 51,
+        "width": 238
       }
-   ],
-   "links" : [
-      {
-         "id" : "B17kL5V14",
-         "input" : {
-            "nodeId" : "H1OnS9Vy4",
-            "pinKey" : "HkXK-dGob"
-         },
-         "output" : {
-            "nodeId" : "rJTCB5EyE",
-            "pinKey" : "HkyxURuSPyW"
-         }
+    },
+    {
+      "content": "Use the debugger to watch the step go 0..pix-ct(-1),\nand the ==0 detect it going around to zero,\nand the clear firing",
+      "id": "Bk-3D9VJV",
+      "position": {
+        "x": 238,
+        "y": 1428
       },
-      {
-         "id" : "B1kHV5EJ4",
-         "input" : {
-            "nodeId" : "BkyN4qNkV",
-            "pinKey" : "S1yZIA_rDJZ"
-         },
-         "output" : {
-            "nodeId" : "rJ8XZcEkV",
-            "pinKey" : "H1E8AuSPkZ"
-         }
-      },
-      {
-         "id" : "BJ1sksEk4",
-         "input" : {
-            "nodeId" : "ByW85tEJE",
-            "pinKey" : "__in__"
-         },
-         "output" : {
-            "nodeId" : "Bk7IyiNkE",
-            "pinKey" : "o-done"
-         }
-      },
-      {
-         "id" : "BJBl5YEyN",
-         "input" : {
-            "nodeId" : "BJZoYYVJE",
-            "pinKey" : "HJAq-A_8-"
-         },
-         "output" : {
-            "nodeId" : "rJQx9YE1N",
-            "pinKey" : "HJU8CE2lW"
-         }
-      },
-      {
-         "id" : "BJSrE54y4",
-         "input" : {
-            "nodeId" : "H1MFAF4JE",
-            "pinKey" : "i-adafruitneopixel"
-         },
-         "output" : {
-            "nodeId" : "BkyN4qNkV",
-            "pinKey" : "S13xLCuHvkW"
-         }
-      },
-      {
-         "id" : "Bkgwv3tN1V",
-         "input" : {
-            "nodeId" : "rkwv3FVyN",
-            "pinKey" : "__in__"
-         },
-         "output" : {
-            "nodeId" : "HJhL_K4y4",
-            "pinKey" : "B1x2RV3eZ"
-         }
-      },
-      {
-         "id" : "By9TUqEJ4",
-         "input" : {
-            "nodeId" : "SJvVz5EJE",
-            "pinKey" : "i-adafruitneopixel"
-         },
-         "output" : {
-            "nodeId" : "HyNp85N1N",
-            "pinKey" : "OkPg7GDaW"
-         }
-      },
-      {
-         "id" : "ByVnB5EyV",
-         "input" : {
-            "nodeId" : "Sym9S5NJ4",
-            "pinKey" : "HkXK-dGob"
-         },
-         "output" : {
-            "nodeId" : "rJ8XZcEkV",
-            "pinKey" : "H1E8AuSPkZ"
-         }
-      },
-      {
-         "id" : "BycR6tVJ4",
-         "input" : {
-            "nodeId" : "rJO06KE1E",
-            "pinKey" : "__in__"
-         },
-         "output" : {
-            "nodeId" : "B15KitNJ4",
-            "pinKey" : "Hku_LuOyz"
-         }
-      },
-      {
-         "id" : "ByyI4qE1E",
-         "input" : {
-            "nodeId" : "BkyN4qNkV",
-            "pinKey" : "r1AgIROHDJW"
-         },
-         "output" : {
-            "nodeId" : "H12B4541N",
-            "pinKey" : "__out__"
-         }
-      },
-      {
-         "id" : "H17d9YE1E",
-         "input" : {
-            "nodeId" : "ryJfqF4JE",
-            "pinKey" : "Bkh8A_Sv1-"
-         },
-         "output" : {
-            "nodeId" : "HJFw5t4J4",
-            "pinKey" : "__out__"
-         }
-      },
-      {
-         "id" : "H1F51j4kV",
-         "input" : {
-            "nodeId" : "Bk7IyiNkE",
-            "pinKey" : "i-adafruitneopixel"
-         },
-         "output" : {
-            "nodeId" : "BkMGut4J4",
-            "pinKey" : "o-dev"
-         }
-      },
-      {
-         "id" : "H1GPwnKEJN",
-         "input" : {
-            "nodeId" : "S1RZOY4JE",
-            "pinKey" : "i-p"
-         },
-         "output" : {
-            "nodeId" : "H1WvD3YEkE",
-            "pinKey" : "__out__"
-         }
-      },
-      {
-         "id" : "H1O6L5VyE",
-         "input" : {
-            "nodeId" : "HyNp85N1N",
-            "pinKey" : "SJ-1mZPTz"
-         },
-         "output" : {
-            "nodeId" : "HkzUMq4J4",
-            "pinKey" : "__out__"
-         }
-      },
-      {
-         "id" : "H1f0n3tVkV",
-         "input" : {
-            "nodeId" : "S1RZOY4JE",
-            "pinKey" : "i-t"
-         },
-         "output" : {
-            "nodeId" : "SJZAhhtNk4",
-            "pinKey" : "__out__"
-         }
-      },
-      {
-         "id" : "HJ2a8cEyN",
-         "input" : {
-            "nodeId" : "HyNp85N1N",
-            "pinKey" : "B1P1nFwaM"
-         },
-         "output" : {
-            "nodeId" : "rJ8XZcEkV",
-            "pinKey" : "H1E8AuSPkZ"
-         }
-      },
-      {
-         "id" : "HJQG_t4yN",
-         "input" : {
-            "nodeId" : "BkMGut4J4",
-            "pinKey" : "i-adafruitneopixel"
-         },
-         "output" : {
-            "nodeId" : "S1RZOY4JE",
-            "pinKey" : "o-adafruitneopixel"
-         }
-      },
-      {
-         "id" : "HJtfCt414",
-         "input" : {
-            "nodeId" : "B15KitNJ4",
-            "pinKey" : "BJvrLOuyz"
-         },
-         "output" : {
-            "nodeId" : "Sk-fAF4JV",
-            "pinKey" : "__out__"
-         }
-      },
-      {
-         "id" : "HJvH-c4J4",
-         "input" : {
-            "nodeId" : "rJ8XZcEkV",
-            "pinKey" : "rJXICuSwyW"
-         },
-         "output" : {
-            "nodeId" : "rJTY0KVk4",
-            "pinKey" : "__out__"
-         }
-      },
-      {
-         "id" : "HkGgxk9NJV",
-         "input" : {
-            "nodeId" : "H1MFAF4JE",
-            "pinKey" : "i-g"
-         },
-         "output" : {
-            "nodeId" : "SyWlxJ9EJE",
-            "pinKey" : "__out__"
-         }
-      },
-      {
-         "id" : "S125JsNy4",
-         "input" : {
-            "nodeId" : "rygE5KNy4",
-            "pinKey" : "__in__"
-         },
-         "output" : {
-            "nodeId" : "Bk7IyiNkE",
-            "pinKey" : "o-dev"
-         }
-      },
-      {
-         "id" : "SJTEE941N",
-         "input" : {
-            "nodeId" : "BkyN4qNkV",
-            "pinKey" : "ryTeUROHD1b"
-         },
-         "output" : {
-            "nodeId" : "SJvVz5EJE",
-            "pinKey" : "o-dev"
-         }
-      },
-      {
-         "id" : "SJrT9YNyE",
-         "input" : {
-            "nodeId" : "ryQv5YVy4",
-            "pinKey" : "__in__"
-         },
-         "output" : {
-            "nodeId" : "r1q39YVkE",
-            "pinKey" : "B1x2RV3eZ"
-         }
-      },
-      {
-         "id" : "Sk7B8q41V",
-         "input" : {
-            "nodeId" : "B1cV8c4JE",
-            "pinKey" : "HkXK-dGob"
-         },
-         "output" : {
-            "nodeId" : "rJTY0KVk4",
-            "pinKey" : "__out__"
-         }
-      },
-      {
-         "id" : "SyW5stVJV",
-         "input" : {
-            "nodeId" : "B15KitNJ4",
-            "pinKey" : "ryKV8d_1f"
-         },
-         "output" : {
-            "nodeId" : "BJZoYYVJE",
-            "pinKey" : "r1yhZRd8W"
-         }
-      },
-      {
-         "id" : "r1-QqKNk4",
-         "input" : {
-            "nodeId" : "rJQx9YE1N",
-            "pinKey" : "r1jzp_DTZ"
-         },
-         "output" : {
-            "nodeId" : "ryJfqF4JE",
-            "pinKey" : "HkyxURuSPyW"
-         }
-      },
-      {
-         "id" : "r1MvqoYVJV",
-         "input" : {
-            "nodeId" : "S1RZOY4JE",
-            "pinKey" : "i-n"
-         },
-         "output" : {
-            "nodeId" : "r1WDqjFN1N",
-            "pinKey" : "__out__"
-         }
-      },
-      {
-         "id" : "r1eUiKNJV",
-         "input" : {
-            "nodeId" : "rJQx9YE1N",
-            "pinKey" : "B13SCNhl-"
-         },
-         "output" : {
-            "nodeId" : "HJWBoFVkV",
-            "pinKey" : "__out__"
-         }
-      },
-      {
-         "id" : "r1gAnhtEkN",
-         "input" : {
-            "nodeId" : "BkA32K4kV",
-            "pinKey" : "__in__"
-         },
-         "output" : {
-            "nodeId" : "SJ1wuFVJV",
-            "pinKey" : "B1x2RV3eZ"
-         }
-      },
-      {
-         "id" : "rJ8TVcVkV",
-         "input" : {
-            "nodeId" : "H1MFAF4JE",
-            "pinKey" : "i-n"
-         },
-         "output" : {
-            "nodeId" : "H1lpEq4k4",
-            "pinKey" : "__out__"
-         }
-      },
-      {
-         "id" : "rJlxxJ5E1V",
-         "input" : {
-            "nodeId" : "ryegycVyE",
-            "pinKey" : "__in__"
-         },
-         "output" : {
-            "nodeId" : "B1FRRFVJ4",
-            "pinKey" : "B1x2RV3eZ"
-         }
-      },
-      {
-         "id" : "rktSeqEJ4",
-         "input" : {
-            "nodeId" : "By8Sl94y4",
-            "pinKey" : "i-adafruitneopixel"
-         },
-         "output" : {
-            "nodeId" : "H1MFAF4JE",
-            "pinKey" : "o-dev"
-         }
-      },
-      {
-         "id" : "ryM18cEyV",
-         "input" : {
-            "nodeId" : "rJTCB5EyE",
-            "pinKey" : "ryTIROHwkW"
-         },
-         "output" : {
-            "nodeId" : "SJvVz5EJE",
-            "pinKey" : "o-done"
-         }
-      },
-      {
-         "id" : "rylD5oFNyV",
-         "input" : {
-            "nodeId" : "HkD9oKV1E",
-            "pinKey" : "__in__"
-         },
-         "output" : {
-            "nodeId" : "H1kLOtE1E",
-            "pinKey" : "B1x2RV3eZ"
-         }
+      "size": {
+        "height": 51,
+        "width": 408
       }
-   ],
-   "nodes" : [
-      {
-         "id" : "B15KitNJ4",
-         "position" : {
-            "x" : -272,
-            "y" : 1224
-         },
-         "type" : "xod/core/modulo"
+    },
+    {
+      "content": "tricky: and then copy the object from the ==0 branch, or the !=0 branch",
+      "id": "ByNLdc4JE",
+      "position": {
+        "x": -272,
+        "y": 1938
       },
-      {
-         "boundLiterals" : {
-            "B1x2RV3eZ" : "30"
-         },
-         "id" : "B1FRRFVJ4",
-         "position" : {
-            "x" : 102,
-            "y" : -306
-         },
-         "type" : "xod/core/constant-number"
-      },
-      {
-         "id" : "B1cV8c4JE",
-         "position" : {
-            "x" : 170,
-            "y" : 1530
-         },
-         "type" : "xod/core/watch"
-      },
-      {
-         "id" : "BJZoYYVJE",
-         "position" : {
-            "x" : -272,
-            "y" : 1122
-         },
-         "type" : "xod/core/count"
-      },
-      {
-         "id" : "Bk7IyiNkE",
-         "position" : {
-            "x" : -272,
-            "y" : 510
-         },
-         "type" : "adafruit/adafruit-neopixel/show"
-      },
-      {
-         "id" : "BkA32K4kV",
-         "label" : "neoRGB",
-         "position" : {
-            "x" : -306,
-            "y" : -204
-         },
-         "type" : "xod/patch-nodes/to-bus"
-      },
-      {
-         "id" : "BkMGut4J4",
-         "position" : {
-            "x" : -272,
-            "y" : 408
-         },
-         "type" : "adafruit/adafruit-neopixel/begin"
-      },
-      {
-         "id" : "BkyN4qNkV",
-         "position" : {
-            "x" : 102,
-            "y" : 1938
-         },
-         "type" : "xod/core/if-else"
-      },
-      {
-         "id" : "By8Sl94y4",
-         "position" : {
-            "x" : 102,
-            "y" : 2244
-         },
-         "type" : "adafruit/adafruit-neopixel/show"
-      },
-      {
-         "id" : "ByW85tEJE",
-         "label" : "SETUP",
-         "position" : {
-            "x" : -238,
-            "y" : 612
-         },
-         "type" : "xod/patch-nodes/to-bus"
-      },
-      {
-         "id" : "H12B4541N",
-         "label" : "neopixel",
-         "position" : {
-            "x" : 68,
-            "y" : 1938
-         },
-         "type" : "xod/patch-nodes/from-bus"
-      },
-      {
-         "id" : "H1MFAF4JE",
-         "position" : {
-            "x" : 102,
-            "y" : 2142
-         },
-         "type" : "adafruit/adafruit-neopixel/set-pixel-color"
-      },
-      {
-         "id" : "H1OnS9Vy4",
-         "position" : {
-            "x" : 374,
-            "y" : 1836
-         },
-         "type" : "xod/core/watch"
-      },
-      {
-         "id" : "H1WvD3YEkE",
-         "label" : "neopin",
-         "position" : {
-            "x" : -238,
-            "y" : 204
-         },
-         "type" : "xod/patch-nodes/from-bus"
-      },
-      {
-         "boundLiterals" : {
-            "B1x2RV3eZ" : "10"
-         },
-         "id" : "H1kLOtE1E",
-         "position" : {
-            "x" : -272,
-            "y" : -408
-         },
-         "type" : "xod/core/constant-number"
-      },
-      {
-         "id" : "H1lpEq4k4",
-         "label" : "step",
-         "position" : {
-            "x" : 136,
-            "y" : 2040
-         },
-         "type" : "xod/patch-nodes/from-bus"
-      },
-      {
-         "id" : "HJFw5t4J4",
-         "label" : "SETUP",
-         "position" : {
-            "x" : -272,
-            "y" : 816
-         },
-         "type" : "xod/patch-nodes/from-bus"
-      },
-      {
-         "id" : "HJWBoFVkV",
-         "label" : "sec/pixel",
-         "position" : {
-            "x" : -306,
-            "y" : 1020
-         },
-         "type" : "xod/patch-nodes/from-bus"
-      },
-      {
-         "boundLiterals" : {
-            "B1x2RV3eZ" : "6"
-         },
-         "id" : "HJhL_K4y4",
-         "position" : {
-            "x" : -272,
-            "y" : -306
-         },
-         "type" : "xod/core/constant-number"
-      },
-      {
-         "id" : "HkD9oKV1E",
-         "label" : "pix-ct",
-         "position" : {
-            "x" : -306,
-            "y" : -408
-         },
-         "type" : "xod/patch-nodes/to-bus"
-      },
-      {
-         "id" : "HkzUMq4J4",
-         "label" : "neopixel",
-         "position" : {
-            "x" : 102,
-            "y" : 1734
-         },
-         "type" : "xod/patch-nodes/from-bus"
-      },
-      {
-         "id" : "HyNp85N1N",
-         "position" : {
-            "x" : 136,
-            "y" : 1734
-         },
-         "type" : "xod/core/gate"
-      },
-      {
-         "id" : "S1RZOY4JE",
-         "position" : {
-            "x" : -272,
-            "y" : 306
-         },
-         "type" : "adafruit/adafruit-neopixel/adafruitneopixel"
-      },
-      {
-         "boundLiterals" : {
-            "B1x2RV3eZ" : "6"
-         },
-         "id" : "SJ1wuFVJV",
-         "label" : "RGB",
-         "position" : {
-            "x" : -272,
-            "y" : -204
-         },
-         "type" : "xod/core/constant-number"
-      },
-      {
-         "id" : "SJZAhhtNk4",
-         "label" : "neoRGB",
-         "position" : {
-            "x" : -204,
-            "y" : 204
-         },
-         "type" : "xod/patch-nodes/from-bus"
-      },
-      {
-         "id" : "SJvVz5EJE",
-         "position" : {
-            "x" : 136,
-            "y" : 1836
-         },
-         "type" : "adafruit/adafruit-neopixel/clear"
-      },
-      {
-         "id" : "Sk-fAF4JV",
-         "label" : "pix-ct",
-         "position" : {
-            "x" : -306,
-            "y" : 1224
-         },
-         "type" : "xod/patch-nodes/from-bus"
-      },
-      {
-         "id" : "SyWlxJ9EJE",
-         "label" : "brightness",
-         "position" : {
-            "x" : 204,
-            "y" : 2040
-         },
-         "type" : "xod/patch-nodes/from-bus"
-      },
-      {
-         "id" : "Sym9S5NJ4",
-         "position" : {
-            "x" : 204,
-            "y" : 1632
-         },
-         "type" : "xod/core/watch"
-      },
-      {
-         "id" : "r1WDqjFN1N",
-         "label" : "pix-ct",
-         "position" : {
-            "x" : -272,
-            "y" : 204
-         },
-         "type" : "xod/patch-nodes/from-bus"
-      },
-      {
-         "boundLiterals" : {
-            "B1x2RV3eZ" : "0.3"
-         },
-         "id" : "r1q39YVkE",
-         "position" : {
-            "x" : -272,
-            "y" : -102
-         },
-         "type" : "xod/core/constant-number"
-      },
-      {
-         "boundLiterals" : {
-            "HJG8C_SPkb" : "0"
-         },
-         "id" : "rJ8XZcEkV",
-         "label" : "== 0",
-         "position" : {
-            "x" : 102,
-            "y" : 1632
-         },
-         "type" : "xod/core/equal"
-      },
-      {
-         "id" : "rJO06KE1E",
-         "label" : "step",
-         "position" : {
-            "x" : -272,
-            "y" : 1326
-         },
-         "type" : "xod/patch-nodes/to-bus"
-      },
-      {
-         "id" : "rJQx9YE1N",
-         "position" : {
-            "x" : -272,
-            "y" : 1020
-         },
-         "type" : "xod/core/clock"
-      },
-      {
-         "id" : "rJTCB5EyE",
-         "position" : {
-            "x" : 238,
-            "y" : 1836
-         },
-         "type" : "xod/core/flip-flop"
-      },
-      {
-         "id" : "rJTY0KVk4",
-         "label" : "step",
-         "position" : {
-            "x" : 102,
-            "y" : 1530
-         },
-         "type" : "xod/patch-nodes/from-bus"
-      },
-      {
-         "id" : "rkwv3FVyN",
-         "label" : "neopin",
-         "position" : {
-            "x" : -306,
-            "y" : -306
-         },
-         "type" : "xod/patch-nodes/to-bus"
-      },
-      {
-         "id" : "ryJfqF4JE",
-         "position" : {
-            "x" : -272,
-            "y" : 918
-         },
-         "type" : "xod/core/flip-flop"
-      },
-      {
-         "id" : "ryQv5YVy4",
-         "label" : "sec/pixel",
-         "position" : {
-            "x" : -306,
-            "y" : -102
-         },
-         "type" : "xod/patch-nodes/to-bus"
-      },
-      {
-         "id" : "ryegycVyE",
-         "label" : "brightness",
-         "position" : {
-            "x" : 68,
-            "y" : -306
-         },
-         "type" : "xod/patch-nodes/to-bus"
-      },
-      {
-         "id" : "rygE5KNy4",
-         "label" : "neopixel",
-         "position" : {
-            "x" : -272,
-            "y" : 612
-         },
-         "type" : "xod/patch-nodes/to-bus"
+      "size": {
+        "height": 51,
+        "width": 204
       }
-   ]
+    },
+    {
+      "content": "If you are using more than 5 neopixels, you should use an external power supply for the neopixel strip.\nThe arduino/laptop-usb may brown out otherwise.\nThe brightness is set low in this example, so should actually allow more neopixels than 5, but an external power supply is the right thing to do.",
+      "id": "Byc819V1N",
+      "position": {
+        "x": 136,
+        "y": -714
+      },
+      "size": {
+        "height": 153,
+        "width": 442
+      }
+    },
+    {
+      "content": "You should set this to the number of pixels,\nOr there will be a delay before the pattern repeats,\nor only some of the pixels will be used.",
+      "id": "H12khtVJN",
+      "position": {
+        "x": -238,
+        "y": -408
+      },
+      "size": {
+        "height": 51,
+        "width": 408
+      }
+    },
+    {
+      "content": "\"slowness\" how long each step of the pattern takes",
+      "id": "H1DQjYE1E",
+      "position": {
+        "x": -238,
+        "y": -102
+      },
+      "size": {
+        "height": 51,
+        "width": 170
+      }
+    },
+    {
+      "content": "which triggers \"clear\"",
+      "id": "HJHSu9EyN",
+      "position": {
+        "x": -272,
+        "y": 1836
+      },
+      "size": {
+        "height": 51,
+        "width": 204
+      }
+    },
+    {
+      "content": "Generate the steps\nModulo makes it repeat from 0..pix-ct(-1)",
+      "id": "Hk9yRYEJN",
+      "position": {
+        "x": -272,
+        "y": 714
+      },
+      "size": {
+        "height": 51,
+        "width": 170
+      }
+    },
+    {
+      "content": "When the pattern restarts (step==0), clear the string.\n",
+      "id": "HkIedcV1V",
+      "position": {
+        "x": -272,
+        "y": 1632
+      },
+      "size": {
+        "height": 51,
+        "width": 204
+      }
+    },
+    {
+      "content": "and the \"threading\" of the object keeps things in order",
+      "id": "HkJqucEyV",
+      "position": {
+        "x": -272,
+        "y": 2142
+      },
+      "size": {
+        "height": 51,
+        "width": 204
+      }
+    },
+    {
+      "content": "Turn all pixels light green, one by one.\nRepeat.\nBased on the Adafruit Neopixel example \"simple\",\nAdjust values below as necessary",
+      "id": "Hkz4FK4yE",
+      "position": {
+        "x": -306,
+        "y": -714
+      },
+      "size": {
+        "height": 153,
+        "width": 408
+      }
+    },
+    {
+      "content": "Do one pattern:\nLight pixels one at a time.\nstep==0 signals start-again",
+      "id": "HyFae54JN",
+      "position": {
+        "x": -272,
+        "y": 1428
+      },
+      "size": {
+        "height": 51,
+        "width": 238
+      }
+    },
+    {
+      "content": "Clears the string too",
+      "id": "S1IcY9N14",
+      "position": {
+        "x": -204,
+        "y": 408
+      },
+      "size": {
+        "height": 51,
+        "width": 170
+      }
+    },
+    {
+      "content": "You may have to set RGB to the right value. See the \"revelation\" examples to help you.",
+      "id": "SJUK_tNJV",
+      "position": {
+        "x": -238,
+        "y": -204
+      },
+      "size": {
+        "height": 51,
+        "width": 272
+      }
+    },
+    {
+      "content": "SETUP Values",
+      "id": "SJmE2K4yE",
+      "position": {
+        "x": -306,
+        "y": -510
+      },
+      "size": {
+        "height": 51,
+        "width": 170
+      }
+    },
+    {
+      "content": "The clock serves as \"delay()\".\nIncrease count every n seconds",
+      "id": "SJnYecEkV",
+      "position": {
+        "x": -170,
+        "y": 1020
+      },
+      "size": {
+        "height": 51,
+        "width": 238
+      }
+    },
+    {
+      "content": "Tricky: on ==0, copy the object through to clear",
+      "id": "SkI7_94y4",
+      "position": {
+        "x": -272,
+        "y": 1734
+      },
+      "size": {
+        "height": 51,
+        "width": 204
+      }
+    },
+    {
+      "content": "Start clock after setup",
+      "id": "SkL5qY4kN",
+      "position": {
+        "x": -170,
+        "y": 918
+      },
+      "size": {
+        "height": 51,
+        "width": 102
+      }
+    },
+    {
+      "content": "SETUP",
+      "id": "SkiNpt4JN",
+      "position": {
+        "x": -272,
+        "y": 102
+      },
+      "size": {
+        "height": 51,
+        "width": 170
+      }
+    },
+    {
+      "content": "But, apparently you have to show too",
+      "id": "Skio1jNyN",
+      "position": {
+        "x": -204,
+        "y": 510
+      },
+      "size": {
+        "height": 51,
+        "width": 170
+      }
+    },
+    {
+      "content": "Show the new color at each step.\n",
+      "id": "r1lIl9EkN",
+      "position": {
+        "x": -272,
+        "y": 2244
+      },
+      "size": {
+        "height": 51,
+        "width": 170
+      }
+    },
+    {
+      "content": "You should set this to the correct pin",
+      "id": "rJ4TdFEyV",
+      "position": {
+        "x": -238,
+        "y": -306
+      },
+      "size": {
+        "height": 51,
+        "width": 170
+      }
+    },
+    {
+      "content": "Double-click to edit comment",
+      "id": "rkPtD9VJN",
+      "position": {
+        "x": 34,
+        "y": 102
+      },
+      "size": {
+        "height": 51,
+        "width": 136
+      }
+    },
+    {
+      "content": "0..pix-ct(-1)\nand repeat",
+      "id": "rkhm0F4k4",
+      "position": {
+        "x": -204,
+        "y": 1224
+      },
+      "size": {
+        "height": 51,
+        "width": 136
+      }
+    },
+    {
+      "content": "If we had \"act/do/update\" as input pulses to all methods, this pattern might be nicer, using select",
+      "id": "ryum9c4y4",
+      "position": {
+        "x": 272,
+        "y": 1734
+      },
+      "size": {
+        "height": 51,
+        "width": 340
+      }
+    }
+  ],
+  "links": [
+    {
+      "id": "B17kL5V14",
+      "input": {
+        "nodeId": "H1OnS9Vy4",
+        "pinKey": "HkXK-dGob"
+      },
+      "output": {
+        "nodeId": "rJTCB5EyE",
+        "pinKey": "HkyxURuSPyW"
+      }
+    },
+    {
+      "id": "B1kHV5EJ4",
+      "input": {
+        "nodeId": "BkyN4qNkV",
+        "pinKey": "S1yZIA_rDJZ"
+      },
+      "output": {
+        "nodeId": "rJ8XZcEkV",
+        "pinKey": "H1E8AuSPkZ"
+      }
+    },
+    {
+      "id": "BJBl5YEyN",
+      "input": {
+        "nodeId": "BJZoYYVJE",
+        "pinKey": "HJAq-A_8-"
+      },
+      "output": {
+        "nodeId": "rJQx9YE1N",
+        "pinKey": "HJU8CE2lW"
+      }
+    },
+    {
+      "id": "Bk3wig7g4",
+      "input": {
+        "nodeId": "H1MFAF4JE",
+        "pinKey": "i-adafruitneopixel"
+      },
+      "output": {
+        "nodeId": "BkyN4qNkV",
+        "pinKey": "S13xLCuHvkW"
+      }
+    },
+    {
+      "id": "BkMdjg7lV",
+      "input": {
+        "nodeId": "H1MFAF4JE",
+        "pinKey": "i-n"
+      },
+      "output": {
+        "nodeId": "H1lpEq4k4",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "Bk_05e7e4",
+      "input": {
+        "nodeId": "rygE5KNy4",
+        "pinKey": "__in__"
+      },
+      "output": {
+        "nodeId": "Bk7IyiNkE",
+        "pinKey": "o-dev"
+      }
+    },
+    {
+      "id": "Bkgwv3tN1V",
+      "input": {
+        "nodeId": "rkwv3FVyN",
+        "pinKey": "__in__"
+      },
+      "output": {
+        "nodeId": "HJhL_K4y4",
+        "pinKey": "B1x2RV3eZ"
+      }
+    },
+    {
+      "id": "ByVnB5EyV",
+      "input": {
+        "nodeId": "Sym9S5NJ4",
+        "pinKey": "HkXK-dGob"
+      },
+      "output": {
+        "nodeId": "rJ8XZcEkV",
+        "pinKey": "H1E8AuSPkZ"
+      }
+    },
+    {
+      "id": "BycR6tVJ4",
+      "input": {
+        "nodeId": "rJO06KE1E",
+        "pinKey": "__in__"
+      },
+      "output": {
+        "nodeId": "B15KitNJ4",
+        "pinKey": "Hku_LuOyz"
+      }
+    },
+    {
+      "id": "Byv09emeV",
+      "input": {
+        "nodeId": "ByW85tEJE",
+        "pinKey": "__in__"
+      },
+      "output": {
+        "nodeId": "Bk7IyiNkE",
+        "pinKey": "o-done"
+      }
+    },
+    {
+      "id": "ByyI4qE1E",
+      "input": {
+        "nodeId": "BkyN4qNkV",
+        "pinKey": "r1AgIROHDJW"
+      },
+      "output": {
+        "nodeId": "H12B4541N",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "H17d9YE1E",
+      "input": {
+        "nodeId": "ryJfqF4JE",
+        "pinKey": "Bkh8A_Sv1-"
+      },
+      "output": {
+        "nodeId": "HJFw5t4J4",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "H1O6L5VyE",
+      "input": {
+        "nodeId": "HyNp85N1N",
+        "pinKey": "SJ-1mZPTz"
+      },
+      "output": {
+        "nodeId": "HkzUMq4J4",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "HJ2a8cEyN",
+      "input": {
+        "nodeId": "HyNp85N1N",
+        "pinKey": "B1P1nFwaM"
+      },
+      "output": {
+        "nodeId": "rJ8XZcEkV",
+        "pinKey": "H1E8AuSPkZ"
+      }
+    },
+    {
+      "id": "HJjp5eQl4",
+      "input": {
+        "nodeId": "S1RZOY4JE",
+        "pinKey": "i-p"
+      },
+      "output": {
+        "nodeId": "H1WvD3YEkE",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "HJtfCt414",
+      "input": {
+        "nodeId": "B15KitNJ4",
+        "pinKey": "BJvrLOuyz"
+      },
+      "output": {
+        "nodeId": "Sk-fAF4JV",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "HJvH-c4J4",
+      "input": {
+        "nodeId": "rJ8XZcEkV",
+        "pinKey": "rJXICuSwyW"
+      },
+      "output": {
+        "nodeId": "rJTY0KVk4",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "HyFa9e7lV",
+      "input": {
+        "nodeId": "S1RZOY4JE",
+        "pinKey": "i-n"
+      },
+      "output": {
+        "nodeId": "r1WDqjFN1N",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "SJrT9YNyE",
+      "input": {
+        "nodeId": "ryQv5YVy4",
+        "pinKey": "__in__"
+      },
+      "output": {
+        "nodeId": "r1q39YVkE",
+        "pinKey": "B1x2RV3eZ"
+      }
+    },
+    {
+      "id": "Sk7B8q41V",
+      "input": {
+        "nodeId": "B1cV8c4JE",
+        "pinKey": "HkXK-dGob"
+      },
+      "output": {
+        "nodeId": "rJTY0KVk4",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "SkNujlXgN",
+      "input": {
+        "nodeId": "H1MFAF4JE",
+        "pinKey": "i-g"
+      },
+      "output": {
+        "nodeId": "SyWlxJ9EJE",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "SkWVogmeN",
+      "input": {
+        "nodeId": "SJvVz5EJE",
+        "pinKey": "i-adafruitneopixel"
+      },
+      "output": {
+        "nodeId": "HyNp85N1N",
+        "pinKey": "OkPg7GDaW"
+      }
+    },
+    {
+      "id": "SyDljlXgN",
+      "input": {
+        "nodeId": "Bk7IyiNkE",
+        "pinKey": "i-adafruitneopixel"
+      },
+      "output": {
+        "nodeId": "BkMGut4J4",
+        "pinKey": "o-dev"
+      }
+    },
+    {
+      "id": "SyW5stVJV",
+      "input": {
+        "nodeId": "B15KitNJ4",
+        "pinKey": "ryKV8d_1f"
+      },
+      "output": {
+        "nodeId": "BJZoYYVJE",
+        "pinKey": "r1yhZRd8W"
+      }
+    },
+    {
+      "id": "SyiuieQgV",
+      "input": {
+        "nodeId": "By8Sl94y4",
+        "pinKey": "i-adafruitneopixel"
+      },
+      "output": {
+        "nodeId": "H1MFAF4JE",
+        "pinKey": "o-dev"
+      }
+    },
+    {
+      "id": "r1-QqKNk4",
+      "input": {
+        "nodeId": "rJQx9YE1N",
+        "pinKey": "r1jzp_DTZ"
+      },
+      "output": {
+        "nodeId": "ryJfqF4JE",
+        "pinKey": "HkyxURuSPyW"
+      }
+    },
+    {
+      "id": "r1NDjgXl4",
+      "input": {
+        "nodeId": "rJTCB5EyE",
+        "pinKey": "Bkh8A_Sv1-"
+      },
+      "output": {
+        "nodeId": "SJvVz5EJE",
+        "pinKey": "o-done"
+      }
+    },
+    {
+      "id": "r1eUiKNJV",
+      "input": {
+        "nodeId": "rJQx9YE1N",
+        "pinKey": "B13SCNhl-"
+      },
+      "output": {
+        "nodeId": "HJWBoFVkV",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "r1gAnhtEkN",
+      "input": {
+        "nodeId": "BkA32K4kV",
+        "pinKey": "__in__"
+      },
+      "output": {
+        "nodeId": "SJ1wuFVJV",
+        "pinKey": "B1x2RV3eZ"
+      }
+    },
+    {
+      "id": "rJlxxJ5E1V",
+      "input": {
+        "nodeId": "ryegycVyE",
+        "pinKey": "__in__"
+      },
+      "output": {
+        "nodeId": "B1FRRFVJ4",
+        "pinKey": "B1x2RV3eZ"
+      }
+    },
+    {
+      "id": "rk5JilQxV",
+      "input": {
+        "nodeId": "BkMGut4J4",
+        "pinKey": "i-adafruitneopixel"
+      },
+      "output": {
+        "nodeId": "S1RZOY4JE",
+        "pinKey": "o-adafruitneopixel"
+      }
+    },
+    {
+      "id": "ryaVsgXlV",
+      "input": {
+        "nodeId": "BkyN4qNkV",
+        "pinKey": "ryTeUROHD1b"
+      },
+      "output": {
+        "nodeId": "SJvVz5EJE",
+        "pinKey": "o-dev"
+      }
+    },
+    {
+      "id": "ryaacgXx4",
+      "input": {
+        "nodeId": "S1RZOY4JE",
+        "pinKey": "i-t"
+      },
+      "output": {
+        "nodeId": "SJZAhhtNk4",
+        "pinKey": "__out__"
+      }
+    },
+    {
+      "id": "rylD5oFNyV",
+      "input": {
+        "nodeId": "HkD9oKV1E",
+        "pinKey": "__in__"
+      },
+      "output": {
+        "nodeId": "H1kLOtE1E",
+        "pinKey": "B1x2RV3eZ"
+      }
+    }
+  ],
+  "nodes": [
+    {
+      "id": "B15KitNJ4",
+      "position": {
+        "x": -272,
+        "y": 1224
+      },
+      "type": "xod/core/modulo"
+    },
+    {
+      "boundLiterals": {
+        "B1x2RV3eZ": "30"
+      },
+      "id": "B1FRRFVJ4",
+      "position": {
+        "x": 102,
+        "y": -306
+      },
+      "type": "xod/core/constant-number"
+    },
+    {
+      "id": "B1cV8c4JE",
+      "position": {
+        "x": 170,
+        "y": 1530
+      },
+      "type": "xod/core/watch"
+    },
+    {
+      "id": "BJZoYYVJE",
+      "position": {
+        "x": -272,
+        "y": 1122
+      },
+      "type": "xod/core/count"
+    },
+    {
+      "id": "Bk7IyiNkE",
+      "position": {
+        "x": -272,
+        "y": 510
+      },
+      "type": "@/show"
+    },
+    {
+      "id": "BkA32K4kV",
+      "label": "neoRGB",
+      "position": {
+        "x": -306,
+        "y": -204
+      },
+      "type": "xod/patch-nodes/to-bus"
+    },
+    {
+      "id": "BkMGut4J4",
+      "position": {
+        "x": -272,
+        "y": 408
+      },
+      "type": "@/begin"
+    },
+    {
+      "id": "BkyN4qNkV",
+      "position": {
+        "x": 102,
+        "y": 1938
+      },
+      "type": "xod/core/if-else"
+    },
+    {
+      "id": "By8Sl94y4",
+      "position": {
+        "x": 102,
+        "y": 2244
+      },
+      "type": "@/show"
+    },
+    {
+      "id": "ByW85tEJE",
+      "label": "SETUP",
+      "position": {
+        "x": -238,
+        "y": 612
+      },
+      "type": "xod/patch-nodes/to-bus"
+    },
+    {
+      "id": "H12B4541N",
+      "label": "neopixel",
+      "position": {
+        "x": 68,
+        "y": 1938
+      },
+      "type": "xod/patch-nodes/from-bus"
+    },
+    {
+      "id": "H1MFAF4JE",
+      "position": {
+        "x": 102,
+        "y": 2142
+      },
+      "type": "@/set-pixel-color"
+    },
+    {
+      "id": "H1OnS9Vy4",
+      "position": {
+        "x": 374,
+        "y": 1836
+      },
+      "type": "xod/core/watch"
+    },
+    {
+      "id": "H1WvD3YEkE",
+      "label": "neopin",
+      "position": {
+        "x": -238,
+        "y": 204
+      },
+      "type": "xod/patch-nodes/from-bus"
+    },
+    {
+      "boundLiterals": {
+        "B1x2RV3eZ": "10"
+      },
+      "id": "H1kLOtE1E",
+      "position": {
+        "x": -272,
+        "y": -408
+      },
+      "type": "xod/core/constant-number"
+    },
+    {
+      "id": "H1lpEq4k4",
+      "label": "step",
+      "position": {
+        "x": 136,
+        "y": 2040
+      },
+      "type": "xod/patch-nodes/from-bus"
+    },
+    {
+      "id": "HJFw5t4J4",
+      "label": "SETUP",
+      "position": {
+        "x": -272,
+        "y": 816
+      },
+      "type": "xod/patch-nodes/from-bus"
+    },
+    {
+      "id": "HJWBoFVkV",
+      "label": "sec/pixel",
+      "position": {
+        "x": -306,
+        "y": 1020
+      },
+      "type": "xod/patch-nodes/from-bus"
+    },
+    {
+      "boundLiterals": {
+        "B1x2RV3eZ": "6"
+      },
+      "id": "HJhL_K4y4",
+      "position": {
+        "x": -272,
+        "y": -306
+      },
+      "type": "xod/core/constant-number"
+    },
+    {
+      "id": "HkD9oKV1E",
+      "label": "pix-ct",
+      "position": {
+        "x": -306,
+        "y": -408
+      },
+      "type": "xod/patch-nodes/to-bus"
+    },
+    {
+      "id": "HkzUMq4J4",
+      "label": "neopixel",
+      "position": {
+        "x": 102,
+        "y": 1734
+      },
+      "type": "xod/patch-nodes/from-bus"
+    },
+    {
+      "id": "HyNp85N1N",
+      "position": {
+        "x": 136,
+        "y": 1734
+      },
+      "type": "xod/core/gate"
+    },
+    {
+      "id": "S1RZOY4JE",
+      "position": {
+        "x": -272,
+        "y": 306
+      },
+      "type": "@/adafruitneopixel"
+    },
+    {
+      "boundLiterals": {
+        "B1x2RV3eZ": "6"
+      },
+      "id": "SJ1wuFVJV",
+      "label": "RGB",
+      "position": {
+        "x": -272,
+        "y": -204
+      },
+      "type": "xod/core/constant-number"
+    },
+    {
+      "id": "SJZAhhtNk4",
+      "label": "neoRGB",
+      "position": {
+        "x": -204,
+        "y": 204
+      },
+      "type": "xod/patch-nodes/from-bus"
+    },
+    {
+      "id": "SJvVz5EJE",
+      "position": {
+        "x": 136,
+        "y": 1836
+      },
+      "type": "@/clear"
+    },
+    {
+      "id": "Sk-fAF4JV",
+      "label": "pix-ct",
+      "position": {
+        "x": -306,
+        "y": 1224
+      },
+      "type": "xod/patch-nodes/from-bus"
+    },
+    {
+      "id": "SyWlxJ9EJE",
+      "label": "brightness",
+      "position": {
+        "x": 204,
+        "y": 2040
+      },
+      "type": "xod/patch-nodes/from-bus"
+    },
+    {
+      "id": "Sym9S5NJ4",
+      "position": {
+        "x": 204,
+        "y": 1632
+      },
+      "type": "xod/core/watch"
+    },
+    {
+      "id": "r1WDqjFN1N",
+      "label": "pix-ct",
+      "position": {
+        "x": -272,
+        "y": 204
+      },
+      "type": "xod/patch-nodes/from-bus"
+    },
+    {
+      "boundLiterals": {
+        "B1x2RV3eZ": "0.3"
+      },
+      "id": "r1q39YVkE",
+      "position": {
+        "x": -272,
+        "y": -102
+      },
+      "type": "xod/core/constant-number"
+    },
+    {
+      "boundLiterals": {
+        "HJG8C_SPkb": "0"
+      },
+      "id": "rJ8XZcEkV",
+      "label": "== 0",
+      "position": {
+        "x": 102,
+        "y": 1632
+      },
+      "type": "xod/core/equal"
+    },
+    {
+      "id": "rJO06KE1E",
+      "label": "step",
+      "position": {
+        "x": -272,
+        "y": 1326
+      },
+      "type": "xod/patch-nodes/to-bus"
+    },
+    {
+      "id": "rJQx9YE1N",
+      "position": {
+        "x": -272,
+        "y": 1020
+      },
+      "type": "xod/core/clock"
+    },
+    {
+      "id": "rJTCB5EyE",
+      "position": {
+        "x": 204,
+        "y": 1836
+      },
+      "type": "xod/core/flip-flop"
+    },
+    {
+      "id": "rJTY0KVk4",
+      "label": "step",
+      "position": {
+        "x": 102,
+        "y": 1530
+      },
+      "type": "xod/patch-nodes/from-bus"
+    },
+    {
+      "id": "rkwv3FVyN",
+      "label": "neopin",
+      "position": {
+        "x": -306,
+        "y": -306
+      },
+      "type": "xod/patch-nodes/to-bus"
+    },
+    {
+      "id": "ryJfqF4JE",
+      "position": {
+        "x": -272,
+        "y": 918
+      },
+      "type": "xod/core/flip-flop"
+    },
+    {
+      "id": "ryQv5YVy4",
+      "label": "sec/pixel",
+      "position": {
+        "x": -306,
+        "y": -102
+      },
+      "type": "xod/patch-nodes/to-bus"
+    },
+    {
+      "id": "ryegycVyE",
+      "label": "brightness",
+      "position": {
+        "x": 68,
+        "y": -306
+      },
+      "type": "xod/patch-nodes/to-bus"
+    },
+    {
+      "id": "rygE5KNy4",
+      "label": "neopixel",
+      "position": {
+        "x": -272,
+        "y": 612
+      },
+      "type": "xod/patch-nodes/to-bus"
+    }
+  ]
 }
