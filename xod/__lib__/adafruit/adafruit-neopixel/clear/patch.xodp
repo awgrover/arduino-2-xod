@@ -1,49 +1,49 @@
 {
-   "description" : "",
    "nodes" : [
       {
-         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
          "label" : "adafruitneopixel",
-         "id" : "i-adafruitneopixel",
+         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
          "position" : {
-            "x" : 68,
-            "y" : 102
-         }
-      },
-      {
-         "type" : "xod/patch-nodes/input-pulse",
-         "label" : "trigger",
-         "id" : "i-trigger",
-         "position" : {
-            "x" : 136,
-            "y" : 102
-         }
-      },
-      {
-         "type" : "xod/patch-nodes/not-implemented-in-xod",
-         "id" : "cpp",
-         "position" : {
-            "x" : 68,
-            "y" : 204
-         }
-      },
-      {
-         "id" : "o-dev",
-         "position" : {
-            "y" : 306,
+            "y" : 102,
             "x" : 68
          },
-         "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel",
-         "label" : "dev"
+         "id" : "i-adafruitneopixel"
+      },
+      {
+         "label" : "trigger",
+         "id" : "i-trigger",
+         "type" : "xod/patch-nodes/input-pulse",
+         "position" : {
+            "y" : 102,
+            "x" : 136
+         }
       },
       {
          "position" : {
-            "y" : 306,
-            "x" : 136
+            "y" : 204,
+            "x" : 68
          },
-         "id" : "o-done",
+         "type" : "xod/patch-nodes/not-implemented-in-xod",
+         "id" : "cpp"
+      },
+      {
+         "label" : "dev",
+         "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel",
+         "position" : {
+            "x" : 68,
+            "y" : 306
+         },
+         "id" : "o-dev"
+      },
+      {
          "label" : "done",
-         "type" : "xod/patch-nodes/output-pulse"
+         "position" : {
+            "x" : 136,
+            "y" : 306
+         },
+         "type" : "xod/patch-nodes/output-pulse",
+         "id" : "o-done"
       }
-   ]
+   ],
+   "description" : ""
 }

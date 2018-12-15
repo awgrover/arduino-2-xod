@@ -1,85 +1,85 @@
 {
+   "description" : "",
    "nodes" : [
       {
-         "id" : "i-adafruitneopixel",
+         "label" : "adafruitneopixel",
          "position" : {
             "x" : 68,
             "y" : 102
          },
          "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
-         "label" : "adafruitneopixel"
+         "id" : "i-adafruitneopixel"
       },
       {
+         "label" : "n",
          "id" : "i-n",
          "position" : {
-            "y" : 102,
-            "x" : 136
+            "x" : 136,
+            "y" : 102
          },
-         "label" : "n",
          "type" : "xod/patch-nodes/input-number"
       },
       {
-         "id" : "i-r",
+         "label" : "r",
          "position" : {
-            "x" : 204,
-            "y" : 102
+            "y" : 102,
+            "x" : 204
          },
          "type" : "xod/patch-nodes/input-number",
-         "label" : "r"
+         "id" : "i-r"
       },
       {
-         "type" : "xod/patch-nodes/input-number",
          "label" : "g",
          "id" : "i-g",
+         "type" : "xod/patch-nodes/input-number",
          "position" : {
             "x" : 272,
             "y" : 102
          }
       },
       {
-         "position" : {
-            "x" : 340,
-            "y" : 102
-         },
+         "label" : "b",
          "id" : "i-b",
          "type" : "xod/patch-nodes/input-number",
-         "label" : "b"
+         "position" : {
+            "y" : 102,
+            "x" : 340
+         }
       },
       {
+         "label" : "trigger",
          "id" : "i-trigger",
+         "type" : "xod/patch-nodes/input-pulse",
          "position" : {
             "x" : 408,
             "y" : 102
-         },
-         "type" : "xod/patch-nodes/input-pulse",
-         "label" : "trigger"
+         }
       },
       {
          "id" : "cpp",
+         "type" : "xod/patch-nodes/not-implemented-in-xod",
          "position" : {
-            "x" : 68,
-            "y" : 204
-         },
-         "type" : "xod/patch-nodes/not-implemented-in-xod"
+            "y" : 204,
+            "x" : 68
+         }
       },
       {
+         "label" : "dev",
+         "id" : "o-dev",
          "position" : {
             "x" : 68,
             "y" : 306
          },
-         "id" : "o-dev",
-         "label" : "dev",
          "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel"
       },
       {
-         "type" : "xod/patch-nodes/output-pulse",
-         "label" : "done",
          "id" : "o-done",
+         "type" : "xod/patch-nodes/output-pulse",
          "position" : {
             "y" : 306,
             "x" : 136
-         }
+         },
+         "label" : "done"
       }
-   ],
-   "description" : ""
+   ]
 }

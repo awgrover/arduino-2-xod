@@ -28,12 +28,24 @@
       "content": "'p' == 0 is nearest the Arduino",
       "id": "S1JqAwVk4",
       "position": {
-        "x": 102,
-        "y": 510
+        "x": 204,
+        "y": 612
       },
       "size": {
         "height": 51,
         "width": 238
+      }
+    },
+    {
+      "content": "delay turns them off for a moment",
+      "id": "S1zeNzXl4",
+      "position": {
+        "x": -204,
+        "y": 714
+      },
+      "size": {
+        "height": 51,
+        "width": 136
       }
     },
     {
@@ -47,22 +59,32 @@
         "height": 51,
         "width": 238
       }
-    },
-    {
-      "content": "Wait a moment for all set-pixel-color, then show.\nHack! should be like: gate-all",
-      "id": "Sy5-qP41E",
-      "position": {
-        "x": 136,
-        "y": 816
-      },
-      "size": {
-        "height": 51,
-        "width": 272
-      }
     }
   ],
   "description": "Light up the first 3 pixels in Red, Green, Blue order.\nNearest the Arduino should be Red, then Green, then Blue.\nThis should help you decode the right RGB code to use (e.g. GRB, etc).",
   "links": [
+    {
+      "id": "B1HeQfmlN",
+      "input": {
+        "nodeId": "rkWgQzmxE",
+        "pinKey": "i-trigger"
+      },
+      "output": {
+        "nodeId": "Hylcs84yE",
+        "pinKey": "o-done"
+      }
+    },
+    {
+      "id": "B1O8MM7gE",
+      "input": {
+        "nodeId": "r1hGwvNyN",
+        "pinKey": "i-b"
+      },
+      "output": {
+        "nodeId": "r1WBAvEkV",
+        "pinKey": "B1x2RV3eZ"
+      }
+    },
     {
       "id": "B1fmc-Xe4",
       "input": {
@@ -86,9 +108,20 @@
       }
     },
     {
-      "id": "BJljqZ7gE",
+      "id": "BJvgQGXgE",
       "input": {
-        "nodeId": "r1hGwvNyN",
+        "nodeId": "BJ9sDPVk4",
+        "pinKey": "SkSuD6LMb"
+      },
+      "output": {
+        "nodeId": "rkWgQzmxE",
+        "pinKey": "o-done"
+      }
+    },
+    {
+      "id": "Bk_UXMXgV",
+      "input": {
+        "nodeId": "rymGDPNk4",
         "pinKey": "i-g"
       },
       "output": {
@@ -105,6 +138,17 @@
       "output": {
         "nodeId": "HyNcu8EyV",
         "pinKey": "o-done"
+      }
+    },
+    {
+      "id": "BynxXzmgN",
+      "input": {
+        "nodeId": "rkWgQzmxE",
+        "pinKey": "i-adafruitneopixel"
+      },
+      "output": {
+        "nodeId": "Hylcs84yE",
+        "pinKey": "o-dev"
       }
     },
     {
@@ -130,6 +174,17 @@
       }
     },
     {
+      "id": "HJI17M7xV",
+      "input": {
+        "nodeId": "ryCW9-Qe4",
+        "pinKey": "__in__"
+      },
+      "output": {
+        "nodeId": "BJ9sDPVk4",
+        "pinKey": "Bk4gU0drwJ-"
+      }
+    },
+    {
       "id": "HJNmhZXg4",
       "input": {
         "nodeId": "r1yRPDNkE",
@@ -141,10 +196,10 @@
       }
     },
     {
-      "id": "HkPFjWQl4",
+      "id": "HJd3MG7lN",
       "input": {
-        "nodeId": "BJ9sDPVk4",
-        "pinKey": "SkSuD6LMb"
+        "nodeId": "r1yRPDNkE",
+        "pinKey": "i-trigger"
       },
       "output": {
         "nodeId": "r1hGwvNyN",
@@ -160,28 +215,6 @@
       "output": {
         "nodeId": "HkLNDD4JV",
         "pinKey": "B1x2RV3eZ"
-      }
-    },
-    {
-      "id": "HkbkqWml4",
-      "input": {
-        "nodeId": "BkH3LwEkE",
-        "pinKey": "__in__"
-      },
-      "output": {
-        "nodeId": "Hylcs84yE",
-        "pinKey": "o-dev"
-      }
-    },
-    {
-      "id": "S1jS5WmgE",
-      "input": {
-        "nodeId": "r1yRPDNkE",
-        "pinKey": "i-trigger"
-      },
-      "output": {
-        "nodeId": "BJ9sDPVk4",
-        "pinKey": "Bk4gU0drwJ-"
       }
     },
     {
@@ -207,17 +240,6 @@
       }
     },
     {
-      "id": "SJtMcWmg4",
-      "input": {
-        "nodeId": "ryCW9-Qe4",
-        "pinKey": "__in__"
-      },
-      "output": {
-        "nodeId": "Hylcs84yE",
-        "pinKey": "o-done"
-      }
-    },
-    {
       "id": "Sk78ibXg4",
       "input": {
         "nodeId": "rymGDPNk4",
@@ -229,17 +251,6 @@
       }
     },
     {
-      "id": "SkCc9-mxE",
-      "input": {
-        "nodeId": "rymGDPNk4",
-        "pinKey": "i-g"
-      },
-      "output": {
-        "nodeId": "r1WBAvEkV",
-        "pinKey": "B1x2RV3eZ"
-      }
-    },
-    {
       "id": "SkGRjWmlE",
       "input": {
         "nodeId": "HyNcu8EyV",
@@ -248,6 +259,17 @@
       "output": {
         "nodeId": "S1SsHw4kE",
         "pinKey": "B1x2RV3eZ"
+      }
+    },
+    {
+      "id": "SkRgXM7eN",
+      "input": {
+        "nodeId": "BkH3LwEkE",
+        "pinKey": "__in__"
+      },
+      "output": {
+        "nodeId": "rkWgQzmxE",
+        "pinKey": "o-dev"
       }
     },
     {
@@ -295,10 +317,10 @@
       }
     },
     {
-      "id": "rk5ccW7l4",
+      "id": "rk7UMGmlE",
       "input": {
         "nodeId": "ry-08PEJ4",
-        "pinKey": "i-g"
+        "pinKey": "i-r"
       },
       "output": {
         "nodeId": "r1WBAvEkV",
@@ -324,8 +346,8 @@
       },
       "id": "BJ9sDPVk4",
       "position": {
-        "x": -68,
-        "y": 816
+        "x": -306,
+        "y": 714
       },
       "type": "xod/core/delay"
     },
@@ -334,7 +356,7 @@
       "label": "neopixel",
       "position": {
         "x": -340,
-        "y": 612
+        "y": 918
       },
       "type": "xod/patch-nodes/to-bus"
     },
@@ -344,8 +366,8 @@
       },
       "id": "HkLNDD4JV",
       "position": {
-        "x": -136,
-        "y": 714
+        "x": -34,
+        "y": 816
       },
       "type": "xod/core/constant-number"
     },
@@ -410,8 +432,8 @@
       },
       "id": "Sk4EwwNyE",
       "position": {
-        "x": -136,
-        "y": 612
+        "x": -34,
+        "y": 714
       },
       "type": "xod/core/constant-number"
     },
@@ -419,8 +441,8 @@
       "id": "Skw1oW7eN",
       "label": "SETUP",
       "position": {
-        "x": 68,
-        "y": 408
+        "x": 170,
+        "y": 510
       },
       "type": "xod/patch-nodes/from-bus"
     },
@@ -430,8 +452,8 @@
       },
       "id": "SyumvP4yN",
       "position": {
-        "x": -136,
-        "y": 510
+        "x": -34,
+        "y": 612
       },
       "type": "xod/core/constant-number"
     },
@@ -443,8 +465,8 @@
       "id": "r1WBAvEkV",
       "label": "brightness",
       "position": {
-        "x": 0,
-        "y": 408
+        "x": 68,
+        "y": 510
       },
       "type": "xod/core/constant-number"
     },
@@ -454,29 +476,37 @@
       },
       "id": "r1hGwvNyN",
       "position": {
-        "x": -102,
-        "y": 714
+        "x": 0,
+        "y": 816
       },
       "type": "@/set-pixel-color"
     },
     {
       "id": "r1yRPDNkE",
       "position": {
-        "x": -102,
+        "x": 0,
         "y": 918
       },
       "type": "@/show"
     },
     {
       "boundLiterals": {
-        "B1x2RV3eZ": "0.001"
+        "B1x2RV3eZ": "0.25"
       },
       "id": "rJEgqwNJN",
       "position": {
-        "x": 68,
-        "y": 816
+        "x": -204,
+        "y": 612
       },
       "type": "xod/core/constant-number"
+    },
+    {
+      "id": "rkWgQzmxE",
+      "position": {
+        "x": -340,
+        "y": 612
+      },
+      "type": "@/show"
     },
     {
       "boundLiterals": {
@@ -484,8 +514,8 @@
       },
       "id": "ry-08PEJ4",
       "position": {
-        "x": -102,
-        "y": 510
+        "x": 0,
+        "y": 612
       },
       "type": "@/set-pixel-color"
     },
@@ -494,7 +524,7 @@
       "label": "SETUP",
       "position": {
         "x": -306,
-        "y": 612
+        "y": 918
       },
       "type": "xod/patch-nodes/to-bus"
     },
@@ -502,8 +532,8 @@
       "id": "ryJJDD4yV",
       "label": "neopixel",
       "position": {
-        "x": -102,
-        "y": 408
+        "x": 0,
+        "y": 510
       },
       "type": "xod/patch-nodes/from-bus"
     },
@@ -513,8 +543,8 @@
       },
       "id": "rymGDPNk4",
       "position": {
-        "x": -102,
-        "y": 612
+        "x": 0,
+        "y": 714
       },
       "type": "@/set-pixel-color"
     }
