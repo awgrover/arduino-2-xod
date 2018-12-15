@@ -967,7 +967,7 @@ sub do_capture {
   my $author = basename(dirname($xod));
   system('rm','-rf', "xod/__lib__/$author/$libname") and die($!);
   system('cp', '-R', $xod, "xod/__lib__/$author") and die($!);
-  say "cp your example xods from ",dirname($xoddir)," to xod/";
+  say "# cp'd everything to xod/__lib__/$author/$libname";
   }
 
 my %commands = (
