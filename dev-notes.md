@@ -226,12 +226,12 @@ To make this usable by a normal person, there should be some automation for gett
 
 # Current Plan
 
-- [ ] stabilise i/o node ids (everything breaks when I regen): 
+- [x] stabilise i/o node ids (everything breaks when I regen): 
 -- [x] comment out/disable the #include enablement, so we can continue working
--- [ ] convert existing examples to use new ids
---- [ ] name/number i/o's scheme. 
+-- [x] convert existing examples to use new ids: failed
+--- [x] name/number i/o's scheme. 
 
-- [ ] convert to pulse-chain
+- [x] convert to pulse-chain
 -- [ ] test
 
 - [ ] put examples in right place in lib/github
