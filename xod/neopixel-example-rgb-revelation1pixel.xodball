@@ -1,9 +1,20 @@
 {
-  "name": "",
+  "authors": [
+  ],
+  "description": "",
+  "license": "",
+  "name": "dumy",
   "patches": {
     "@/delay-gate": {
+      "@@type": "xod-project/Patch",
+      "attachments": [
+      ],
+      "comments": {
+      },
+      "description": "",
       "links": {
         "B1LpaydV1N": {
+          "@@type": "xod-project/Link",
           "id": "B1LpaydV1N",
           "input": {
             "nodeId": "H1WaTyONkN",
@@ -15,6 +26,7 @@
           }
         },
         "Bkd6akdEy4": {
+          "@@type": "xod-project/Link",
           "id": "Bkd6akdEy4",
           "input": {
             "nodeId": "S1xTTkdE1V",
@@ -26,6 +38,7 @@
           }
         },
         "Bycp6k_NJE": {
+          "@@type": "xod-project/Link",
           "id": "Bycp6k_NJE",
           "input": {
             "nodeId": "rJ66JOEkN",
@@ -37,6 +50,7 @@
           }
         },
         "HkDa61u41E": {
+          "@@type": "xod-project/Link",
           "id": "HkDa61u41E",
           "input": {
             "nodeId": "rJ66JOEkN",
@@ -48,6 +62,7 @@
           }
         },
         "S1FTpkuNkV": {
+          "@@type": "xod-project/Link",
           "id": "S1FTpkuNkV",
           "input": {
             "nodeId": "S1xTTkdE1V",
@@ -59,6 +74,7 @@
           }
         },
         "rkopp1ONyN": {
+          "@@type": "xod-project/Link",
           "id": "rkopp1ONyN",
           "input": {
             "nodeId": "BJSaakO4J4",
@@ -72,62 +88,128 @@
       },
       "nodes": {
         "BJSaakO4J4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "BJSaakO4J4",
           "label": "gated-val",
           "position": {
             "x": 101,
             "y": 407
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/output-t1"
         },
         "H1WaTyONkN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "H1WaTyONkN",
+          "label": "",
           "position": {
             "x": 135,
             "y": 203
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/not"
         },
         "S1mTa1u41E": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "S1mTa1u41E",
           "label": "SET",
           "position": {
             "x": 101,
             "y": -1
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/input-pulse"
         },
         "S1xTTkdE1V": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "S1xTTkdE1V",
+          "label": "",
           "position": {
             "x": 101,
             "y": 101
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/delay"
         },
         "SJE66yuVJN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "SJE66yuVJN",
           "label": "val",
           "position": {
             "x": -1,
             "y": -1
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/input-t1"
         },
         "SkGT6JdVJ4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "SkGT6JdVJ4",
           "label": "T",
           "position": {
             "x": 169,
             "y": -1
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/input-number"
         },
         "rJ66JOEkN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "rJ66JOEkN",
+          "label": "",
           "position": {
             "x": 101,
             "y": 305
+          },
+          "size": {
+            "height": 0,
+            "width": 0
           },
           "type": "xod/core/gate"
         }
@@ -135,6 +217,9 @@
       "path": "@/delay-gate"
     },
     "@/main": {
+      "@@type": "xod-project/Patch",
+      "attachments": [
+      ],
       "comments": {
         "B1Qvm_41V": {
           "content": "RED",
@@ -257,8 +342,10 @@
           }
         }
       },
+      "description": "",
       "links": {
         "B1S7LdNJ4": {
+          "@@type": "xod-project/Link",
           "id": "B1S7LdNJ4",
           "input": {
             "nodeId": "HyM_4O4kN",
@@ -270,6 +357,7 @@
           }
         },
         "BJ2_NOEkN": {
+          "@@type": "xod-project/Link",
           "id": "BJ2_NOEkN",
           "input": {
             "nodeId": "rJyllNe_41V",
@@ -281,6 +369,7 @@
           }
         },
         "BkFcH_Vy4": {
+          "@@type": "xod-project/Link",
           "id": "BkFcH_Vy4",
           "input": {
             "nodeId": "rkM5rO414",
@@ -292,6 +381,7 @@
           }
         },
         "BkJOmdE14": {
+          "@@type": "xod-project/Link",
           "id": "BkJOmdE14",
           "input": {
             "nodeId": "HyZjrXOV1N",
@@ -303,6 +393,7 @@
           }
         },
         "ByzTvG_Vy4": {
+          "@@type": "xod-project/Link",
           "id": "ByzTvG_Vy4",
           "input": {
             "nodeId": "rJyllNe_41V",
@@ -314,6 +405,7 @@
           }
         },
         "H1lavG_41E": {
+          "@@type": "xod-project/Link",
           "id": "H1lavG_41E",
           "input": {
             "nodeId": "rypDzu4yE",
@@ -325,6 +417,7 @@
           }
         },
         "HJLirQuN1N": {
+          "@@type": "xod-project/Link",
           "id": "HJLirQuN1N",
           "input": {
             "nodeId": "HyZjrXOV1N",
@@ -336,6 +429,7 @@
           }
         },
         "HJSzNdEk4": {
+          "@@type": "xod-project/Link",
           "id": "HJSzNdEk4",
           "input": {
             "nodeId": "BJZ2imdEkN",
@@ -347,6 +441,7 @@
           }
         },
         "HkQEN_NJN": {
+          "@@type": "xod-project/Link",
           "id": "HkQEN_NJN",
           "input": {
             "nodeId": "BJhjQdNJ4",
@@ -358,6 +453,7 @@
           }
         },
         "HkuyNuVJ4": {
+          "@@type": "xod-project/Link",
           "id": "HkuyNuVJ4",
           "input": {
             "nodeId": "SyoxEguEJV",
@@ -369,6 +465,7 @@
           }
         },
         "HkzWgVluEyV": {
+          "@@type": "xod-project/Link",
           "id": "HkzWgVluEyV",
           "input": {
             "nodeId": "SkXeNguV1V",
@@ -380,6 +477,7 @@
           }
         },
         "HyR7EO4yV": {
+          "@@type": "xod-project/Link",
           "id": "HyR7EO4yV",
           "input": {
             "nodeId": "BJhjQdNJ4",
@@ -391,6 +489,7 @@
           }
         },
         "S1BZV_EyE": {
+          "@@type": "xod-project/Link",
           "id": "S1BZV_EyE",
           "input": {
             "nodeId": "SyTg4g_VJE",
@@ -402,6 +501,7 @@
           }
         },
         "S1lzNu4k4": {
+          "@@type": "xod-project/Link",
           "id": "S1lzNu4k4",
           "input": {
             "nodeId": "SkloSQdNyN",
@@ -413,6 +513,7 @@
           }
         },
         "S1mfEO41E": {
+          "@@type": "xod-project/Link",
           "id": "S1mfEO41E",
           "input": {
             "nodeId": "rkirQdE1E",
@@ -424,6 +525,7 @@
           }
         },
         "S1rCmdE1E": {
+          "@@type": "xod-project/Link",
           "id": "S1rCmdE1E",
           "input": {
             "nodeId": "HJy0mu41V",
@@ -435,6 +537,7 @@
           }
         },
         "SJjfIdNJE": {
+          "@@type": "xod-project/Link",
           "id": "SJjfIdNJE",
           "input": {
             "nodeId": "r1NfLuNkE",
@@ -446,6 +549,7 @@
           }
         },
         "SkwIfONkN": {
+          "@@type": "xod-project/Link",
           "id": "SkwIfONkN",
           "input": {
             "nodeId": "rJ_rf_NkE",
@@ -457,6 +561,7 @@
           }
         },
         "SyXggEeOVkV": {
+          "@@type": "xod-project/Link",
           "id": "SyXggEeOVkV",
           "input": {
             "nodeId": "HJExVxu4kN",
@@ -468,6 +573,7 @@
           }
         },
         "SycgeElOVJN": {
+          "@@type": "xod-project/Link",
           "id": "SycgeElOVJN",
           "input": {
             "nodeId": "HkggVxdEkV",
@@ -479,6 +585,7 @@
           }
         },
         "SycmNOEJV": {
+          "@@type": "xod-project/Link",
           "id": "SycmNOEJV",
           "input": {
             "nodeId": "Hyl3s7_V1V",
@@ -490,6 +597,7 @@
           }
         },
         "SyrkEO4yE": {
+          "@@type": "xod-project/Link",
           "id": "SyrkEO4yE",
           "input": {
             "nodeId": "SyoxEguEJV",
@@ -501,6 +609,7 @@
           }
         },
         "Syw3jXdVyV": {
+          "@@type": "xod-project/Link",
           "id": "Syw3jXdVyV",
           "input": {
             "nodeId": "BJhjQdNJ4",
@@ -512,6 +621,7 @@
           }
         },
         "r13xeEg_EJN": {
+          "@@type": "xod-project/Link",
           "id": "r13xeEg_EJN",
           "input": {
             "nodeId": "SkXeNguV1V",
@@ -523,6 +633,7 @@
           }
         },
         "rJ7eN_E1E": {
+          "@@type": "xod-project/Link",
           "id": "rJ7eN_E1E",
           "input": {
             "nodeId": "HyZjrXOV1N",
@@ -534,6 +645,7 @@
           }
         },
         "rJMirOEJN": {
+          "@@type": "xod-project/Link",
           "id": "rJMirOEJN",
           "input": {
             "nodeId": "HyM_4O4kN",
@@ -545,6 +657,7 @@
           }
         },
         "rJVrH_Vk4": {
+          "@@type": "xod-project/Link",
           "id": "rJVrH_Vk4",
           "input": {
             "nodeId": "BJZ2imdEkN",
@@ -556,6 +669,7 @@
           }
         },
         "rJdjHQOEkN": {
+          "@@type": "xod-project/Link",
           "id": "rJdjHQOEkN",
           "input": {
             "nodeId": "rkirQdE1E",
@@ -567,6 +681,7 @@
           }
         },
         "rJo9BO41E": {
+          "@@type": "xod-project/Link",
           "id": "rJo9BO41E",
           "input": {
             "nodeId": "HyM_4O4kN",
@@ -578,6 +693,7 @@
           }
         },
         "rk49W_VJ4": {
+          "@@type": "xod-project/Link",
           "id": "rk49W_VJ4",
           "input": {
             "nodeId": "r1PFWdNJV",
@@ -589,6 +705,7 @@
           }
         },
         "rkVymuNkN": {
+          "@@type": "xod-project/Link",
           "id": "rkVymuNkN",
           "input": {
             "nodeId": "SyoxEguEJV",
@@ -600,6 +717,7 @@
           }
         },
         "rkZ6-uV1V": {
+          "@@type": "xod-project/Link",
           "id": "rkZ6-uV1V",
           "input": {
             "nodeId": "rJyllNe_41V",
@@ -611,6 +729,7 @@
           }
         },
         "rkifVOV14": {
+          "@@type": "xod-project/Link",
           "id": "rkifVOV14",
           "input": {
             "nodeId": "rkirQdE1E",
@@ -622,6 +741,7 @@
           }
         },
         "ryDll4xOV1E": {
+          "@@type": "xod-project/Link",
           "id": "ryDll4xOV1E",
           "input": {
             "nodeId": "SkXeNguV1V",
@@ -633,6 +753,7 @@
           }
         },
         "ryU2oXuNJN": {
+          "@@type": "xod-project/Link",
           "id": "ryU2oXuNJN",
           "input": {
             "nodeId": "BJZ2imdEkN",
@@ -646,345 +767,668 @@
       },
       "nodes": {
         "B1UCG_414": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "B1UCG_414",
           "label": "ontime",
           "position": {
             "x": 306,
             "y": 816
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/from-bus"
         },
         "B1leg4lONy4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "B1leg4lONy4",
           "label": "SETUP",
           "position": {
             "x": 0,
             "y": 612
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/from-bus"
         },
         "BJFxVx_NJV": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "0"
           },
+          "description": "",
           "id": "BJFxVx_NJV",
+          "label": "",
           "position": {
             "x": 170,
             "y": 408
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "BJZ2imdEkN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "NcF1brHWk": "0"
           },
+          "description": "",
           "id": "BJZ2imdEkN",
+          "label": "",
           "position": {
             "x": 816,
             "y": 714
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/set-pixel-color"
         },
         "BJZ6Pf_V1V": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "BJZ6Pf_V1V",
           "label": "brightness",
           "position": {
             "x": 272,
             "y": 612
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/from-bus"
         },
         "BJhjQdNJ4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "BJhjQdNJ4",
+          "label": "",
           "position": {
             "x": 816,
             "y": 918
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "@/delay-gate"
         },
         "HJExVxu4kN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "HJExVxu4kN",
+          "label": "",
           "position": {
             "x": -1,
             "y": 407
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/begin"
         },
         "HJy0mu41V": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "HJy0mu41V",
+          "label": "",
           "position": {
             "x": 0,
             "y": 714
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/clear"
         },
         "Hk7hsmdEy4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "Hk7hsmdEy4",
           "label": "brightness",
           "position": {
             "x": 884,
             "y": 612
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/from-bus"
         },
         "HkXjSQOEJ4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "HkXjSQOEJ4",
           "label": "brightness",
           "position": {
             "x": 578,
             "y": 612
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/from-bus"
         },
         "HkggVxdEkV": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "HkggVxdEkV",
           "label": "SETUP",
           "position": {
             "x": 0,
             "y": 510
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/to-bus"
         },
         "HyM_4O4kN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "HyM_4O4kN",
+          "label": "",
           "position": {
             "x": 0,
             "y": 918
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "@/delay-gate"
         },
         "HyZjrXOV1N": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "NcF1brHWk": "0"
           },
+          "description": "",
           "id": "HyZjrXOV1N",
+          "label": "",
           "position": {
             "x": 510,
             "y": 714
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/set-pixel-color"
         },
         "Hyl3s7_V1V": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "Hyl3s7_V1V",
+          "label": "",
           "position": {
             "x": 816,
             "y": 816
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/show"
         },
         "S1EjS7_4yN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "S1EjS7_4yN",
           "label": "ontime",
           "position": {
             "x": 612,
             "y": 816
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/from-bus"
         },
         "S1ez_VuEk4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "S1ez_VuEk4",
           "label": "ontime",
           "position": {
             "x": 102,
             "y": 714
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/from-bus"
         },
         "SJ43oQdNJ4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "SJ43oQdNJ4",
           "label": "ontime",
           "position": {
             "x": 918,
             "y": 816
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/from-bus"
         },
         "SJDnbuEkE": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "SJDnbuEkE",
           "label": "pix0",
           "position": {
             "x": 238,
             "y": 612
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/from-bus"
         },
         "SkXeNguV1V": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "F0bIxO7lC": "7",
             "a9nPX-E3Y": "82",
             "hFHIuGT5E": "6"
           },
+          "description": "",
           "id": "SkXeNguV1V",
+          "label": "",
           "position": {
             "x": -1,
             "y": 305
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/adafruitneopixel"
         },
         "Skf3imu4kE": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "Skf3imu4kE",
           "label": "pix0",
           "position": {
             "x": 850,
             "y": 612
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/from-bus"
         },
         "SkloSQdNyN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "SkloSQdNyN",
+          "label": "",
           "position": {
             "x": 510,
             "y": 816
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/show"
         },
         "SyTg4g_VJE": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "SyTg4g_VJE",
+          "label": "",
           "position": {
             "x": 204,
             "y": 816
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/show"
         },
         "SyUx4l_NJ4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "6"
           },
+          "description": "",
           "id": "SyUx4l_NJ4",
+          "label": "",
           "position": {
             "x": 34,
             "y": 102
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "SyoxEguEJV": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "SyoxEguEJV",
+          "label": "",
           "position": {
             "x": 204,
             "y": 918
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "@/delay-gate"
         },
         "r1GxNxOV1E": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "10"
           },
+          "description": "",
           "id": "r1GxNxOV1E",
+          "label": "",
           "position": {
             "x": 0,
             "y": 204
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "r1NfLuNkE": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "r1NfLuNkE",
           "label": "/2",
           "position": {
             "x": 68,
             "y": 816
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/divide"
         },
         "r1PFWdNJV": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "r1PFWdNJV",
           "label": "pix0",
           "position": {
             "x": 170,
             "y": 510
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/to-bus"
         },
         "rJ9xVl_E1E": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "50"
           },
           "description": "neopixels can be painfully bright.\npick a reasonable number.",
           "id": "rJ9xVl_E1E",
+          "label": "",
           "position": {
             "x": 238,
             "y": 408
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "rJHeVlON1V": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "6"
           },
+          "description": "",
           "id": "rJHeVlON1V",
           "label": "RGB",
           "position": {
             "x": 68,
             "y": 204
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "rJ_rf_NkE": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "rJ_rf_NkE",
           "label": "ontime",
           "position": {
             "x": 204,
             "y": 510
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/to-bus"
         },
         "rJfoB7u41N": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "rJfoB7u41N",
           "label": "pix0",
           "position": {
             "x": 544,
             "y": 612
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/from-bus"
         },
         "rJyllNe_41V": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "NcF1brHWk": "75"
           },
+          "description": "",
           "id": "rJyllNe_41V",
+          "label": "",
           "position": {
             "x": 204,
             "y": 714
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/set-pixel-color"
         },
         "rk6GGdE14": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "1.5"
           },
+          "description": "",
           "id": "rk6GGdE14",
+          "label": "",
           "position": {
             "x": 204,
             "y": 408
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "rkM5rO414": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "rkM5rO414",
+          "label": "",
           "position": {
             "x": 0,
             "y": 816
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/show"
         },
         "rkirQdE1E": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "rkirQdE1E",
+          "label": "",
           "position": {
             "x": 510,
             "y": 918
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "@/delay-gate"
         },
         "rypDzu4yE": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "rypDzu4yE",
           "label": "brightness",
           "position": {
             "x": 238,
             "y": 510
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/to-bus"
         }
       },
       "path": "@/main"
     }
-  }
+  },
+  "version": "0.0.0"
 }

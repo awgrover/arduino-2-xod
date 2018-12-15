@@ -92,7 +92,7 @@ Getting the full AST is problematic. However, several language bindings to the "
 - [ ] pointer types (args)
 - [ ] skip statics, or make diff kind of node
 
-./ard2xod methods /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/Adafruit/Adafruit_NeoPixel`
+./ard2xod methods /home/awgrover/Arduino/libraries/Adafruit_NeoPixel /home/awgrover/xod/__lib__/adafruit/adafruit-neopixel`
 
 - For each public attribute
 - [x] "this" is `"type": "@/input-adafruit-neopixel"`
@@ -226,16 +226,20 @@ To make this usable by a normal person, there should be some automation for gett
 
 # Current Plan
 - [ ] stabilise i/o node ids (everything breaks when I regen): 
--- [ ] comment out/disable the #include enablement, so we can continue working
+-- [x] comment out/disable the #include enablement, so we can continue working
 -- [ ] convert existing examples to use new ids
 --- [ ] name/number i/o's scheme. 
 
 - [ ] convert to pulse-chain
 -- [ ] test
 
+- [ ] put examples in right place in lib/github
+
 - [ ] statics
 -- [ ] skip
 -- [ ] add back in properly
+
+- [ ] clean up $xoddir & examples
 
 - [x] look into diagnostic messages from libclang. maybe it's telling us something. maybe we need ` std=c++11` cf. https://stackoverflow.com/questions/37098725/parsing-with-libclang-unable-to-parse-certain-tokens-python-in-windows.
 -- it was #includes, experimented some

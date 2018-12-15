@@ -12,6 +12,8 @@ use Text::Template; # it was there
 use lib 'bin';
 use awgrover::Getopt;
 
+my $gSwitches;
+
 # BUG flags, turn off when fixed
 our %BUG;
 $BUG{'type_name_dash'} = 1; # the patch-name is supposed to be the custom type name, but the transpiler is not doing s/-/_/g;
@@ -175,63 +177,6 @@ sub do_make {
   do_methods();
   do_properties();
   }
-
-
-my $gSwitches;
-
-my %commands = (
-    make => [
-        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the xod library',
-        '--github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
-        'help|h|H'=>'this',
-        ],
-    # Parts
-    library => [
-        ''=>'--- ardlibdir # Make the xod library dir/properties',
-        'help|h|H'=>'this',
-        ],
-    constructor => [ 
-        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the constructor nodes',
-        '--github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
-        'help|h|H'=>'this',
-        ],
-    methods => [ 
-        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public method nodes',
-        '--only:s' => 'only make this exact method name',
-        '--limit:n' => 'only make this many methods',
-        'help|h|H'=>'this',
-        ],
-    specialize => [
-        ''=>'--- ardlibdir xod-proj-dir # create specialization patches',
-        '--limit:n' => 'only make this many properties',
-        'help|h|H'=>'this',
-        ],
-    properties => [ 
-        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public property nodes',
-        '--limit:n' => 'only make this many properties',
-        'help|h|H'=>'this',
-        ],
-    # util
-    ast => [ # --- ardlibdir
-      '' => 'dump the ast',
-      'help|h|H'=>'this',
-      ],
-    unpack => [
-        ''=>'Unpack a .xodball into /tmp/xodball/* for further processing',
-        'help|h|H'=>'this',
-        ],
-    );
-
-sub fail_with_help {
-    my ($msg, $command) = @_;
-    say STDERR $msg;
-    @ARGV = qw('--help');
-    while(my ($c,$opdef) = each(%commands)) {
-        say STDERR $c;
-        awgrover::Getopt::xprintSwitchHelp(@$opdef);
-        }
-    exit 1;
-    }
 
 sub ard_dot_h {
   my ($ard) = @_;
@@ -417,7 +362,7 @@ sub do_properties {
 
 sub definitions {
   # common values we need from $ard/$xod stuff
-  # returns $ast, $defn
+  # returns $ast (for first class), $defn
   my ($ard, $xod) = @_;
 
   my $libname;
@@ -430,6 +375,7 @@ sub definitions {
 
   if (!-e "$xod/project.xod") {
     say STDERR "# Expected a xod-project-dir with project.xod in $xod";
+    die;
     exit 1;
     }
 
@@ -479,7 +425,7 @@ sub definitions {
   $defn{'cpp'}->{'cons_namespace'} = cpp_safe_token( $defn{'cpp'}->{'cons_namespace'} );
   #say "## defn: ",Dumper(\%defn);
 
-  return ($ast, %defn);
+  return ($class_ast, %defn);
   }
 
 sub make_patches {
@@ -495,6 +441,7 @@ sub make_patches {
   #print "found ${what}'s: ",dump_shallow($_),"\n" foreach @$methods_ast;
   if (!@$methods_ast) {
     warn "No ${what}'s";
+    die;
     return;
     }
 
@@ -563,23 +510,32 @@ sub do_methods {
     'method',
     $ard, $xod,
     $cpp_method,
+
     # description
     sub { my ($defn, $method_node, $args, $ct) = @_; # unused
         ''; # can we do better? comments? doc? line-number?
       },
+
     # %xodp
     sub { 
       my ($defn, $xodp, $method, $args, $ct) = @_;
 
       # each "row" of a patch
 
+      # inputs
       add_nodes($xodp, 
+
+        # the object
         [$defn->{'cpp'}->{'cons_patch_name'} => $defn->{'xod'}->{'input_type_name'}], 
+
+        # the args
         @$args
         );
 
+      # cpp
       add_nodes($xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
 
+      # output node(s)
       my $outtype = $cpp2xod_type{ $method->{'type'} };
       $outtype =~ s/\/input-/\/output-/; # 'input' -> 'output'
       if (!$outtype) {
@@ -729,11 +685,32 @@ sub add_nodes {
   foreach my $nt (@inputs) {
     my ($name,$type) = @$nt;
 
+    # The id is "stable": if you generate a 2nd time, should be same id
+    # this lets already existing patches continue to work
+    # We might as well just use the label, since they are unique anyway
+    my $id;
+    if ($name) {
+      # first letter of input/output
+      $id .= substr( (split('/', $type))[-1], 0, 1 );
+      $id .= "-";
+      # the label
+      $id .= $name;
+      }
+    elsif ( $type eq 'xod/patch-nodes/not-implemented-in-xod' ) {
+      $id = 'cpp';
+      }
+    else {
+      # what other ones don't have id?
+      warn "Expected all un-named nodes to have an id, except xod/patch-nodes/not-implemented-in-xod. This was $type";
+      $id = next_xod_id();
+      }
+
     my %node;
-    $node{'id'} = next_xod_id();
+    $node{'id'} = $id;
     $node{'label'} = $name if $name; # some nodes have no name, e.g. not-implemented-in-xod
     $node{'type'} = $type;
     $node{'position'} = { x => $x, y => $row_y };
+    warn "# node ",$node{'label'}," [",$node{'id'},"] as ",$node{'type'};
 
     
     push @$nodes, \%node;
@@ -975,6 +952,60 @@ sub specialize_xodp {
   write_patch( "$xod/$this_patch_name/patch.xodp", $xodp);
   return $xodp;
   }
+
+my %commands = (
+    make => [
+        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the xod library',
+        '--github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
+        'help|h|H'=>'this',
+        ],
+    # Parts
+    library => [
+        ''=>'--- ardlibdir # Make the xod library dir/properties',
+        'help|h|H'=>'this',
+        ],
+    constructor => [ 
+        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the constructor nodes',
+        '--github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
+        'help|h|H'=>'this',
+        ],
+    methods => [ 
+        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public method nodes',
+        '--only:s' => 'only make this exact method name',
+        '--limit:n' => 'only make this many methods',
+        'help|h|H'=>'this',
+        ],
+    specialize => [
+        ''=>'--- ardlibdir xod-proj-dir # create specialization patches',
+        '--limit:n' => 'only make this many properties',
+        'help|h|H'=>'this',
+        ],
+    properties => [ 
+        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public property nodes',
+        '--limit:n' => 'only make this many properties',
+        'help|h|H'=>'this',
+        ],
+    # util
+    ast => [ # --- ardlibdir
+      '' => 'dump the ast',
+      'help|h|H'=>'this',
+      ],
+    unpack => [
+        ''=>'Unpack a .xodball into /tmp/xodball/* for further processing',
+        'help|h|H'=>'this',
+        ],
+    );
+
+sub fail_with_help {
+    my ($msg, $command) = @_;
+    say STDERR $msg;
+    @ARGV = qw('--help');
+    while(my ($c,$opdef) = each(%commands)) {
+        say STDERR $c;
+        awgrover::Getopt::xprintSwitchHelp(@$opdef);
+        }
+    exit 1;
+    }
 
 sub main {
     my $command = shift @ARGV;
