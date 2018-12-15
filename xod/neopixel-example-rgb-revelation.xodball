@@ -1,10 +1,20 @@
 {
-  "name": "",
+  "authors": [
+  ],
+  "description": "",
+  "license": "",
+  "name": "dumy",
   "patches": {
     "@/delay-gate": {
+      "@@type": "xod-project/Patch",
+      "attachments": [
+      ],
+      "comments": {
+      },
       "description": "Start the delay (T seconds) on SET pulse.\nWhen the delay expires, output the val.",
       "links": {
         "BJJkFw4JV": {
+          "@@type": "xod-project/Link",
           "id": "BJJkFw4JV",
           "input": {
             "nodeId": "HkrTuPNyN",
@@ -16,6 +26,7 @@
           }
         },
         "BJjEtP41V": {
+          "@@type": "xod-project/Link",
           "id": "BJjEtP41V",
           "input": {
             "nodeId": "HkwVFv4JN",
@@ -27,6 +38,7 @@
           }
         },
         "H1DWtD41N": {
+          "@@type": "xod-project/Link",
           "id": "H1DWtD41N",
           "input": {
             "nodeId": "HyoTOP4k4",
@@ -38,6 +50,7 @@
           }
         },
         "HJAAdPVJE": {
+          "@@type": "xod-project/Link",
           "id": "HJAAdPVJE",
           "input": {
             "nodeId": "H1qCuPNyE",
@@ -49,6 +62,7 @@
           }
         },
         "HyIgFw4yN": {
+          "@@type": "xod-project/Link",
           "id": "HyIgFw4yN",
           "input": {
             "nodeId": "HyoTOP4k4",
@@ -60,6 +74,7 @@
           }
         },
         "Sk3MKP4yV": {
+          "@@type": "xod-project/Link",
           "id": "Sk3MKP4yV",
           "input": {
             "nodeId": "HkrTuPNyN",
@@ -73,62 +88,128 @@
       },
       "nodes": {
         "H1qCuPNyE": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "H1qCuPNyE",
+          "label": "",
           "position": {
             "x": 238,
             "y": 204
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/not"
         },
         "HkrTuPNyN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "HkrTuPNyN",
+          "label": "",
           "position": {
             "x": 204,
             "y": 306
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/gate"
         },
         "HkwVFv4JN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "HkwVFv4JN",
           "label": "gated-val",
           "position": {
             "x": 204,
             "y": 408
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/output-t1"
         },
         "HkwftDNk4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "HkwftDNk4",
           "label": "val",
           "position": {
             "x": 102,
             "y": 0
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/input-t1"
         },
         "HyoTOP4k4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "HyoTOP4k4",
+          "label": "",
           "position": {
             "x": 204,
             "y": 102
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/delay"
         },
         "S1QWYDE1E": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "S1QWYDE1E",
           "label": "SET",
           "position": {
             "x": 204,
             "y": 0
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/input-pulse"
         },
         "SyrlKvEJN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "SyrlKvEJN",
           "label": "T",
           "position": {
             "x": 272,
             "y": 0
+          },
+          "size": {
+            "height": 0,
+            "width": 0
           },
           "type": "xod/patch-nodes/input-number"
         }
@@ -136,6 +217,9 @@
       "path": "@/delay-gate"
     },
     "@/main": {
+      "@@type": "xod-project/Patch",
+      "attachments": [
+      ],
       "comments": {
         "BknKSD4yE": {
           "content": "Light up the first 3 pixels in Red, Green, Blue order.\nNearest the Arduino should be Red, then Green, then Blue.\nThis should help you decode the right RGB code to use (e.g. GRB, etc).\nThis should do white as well, but it doesn't yet.\nAlso, it ignores pixels past the 3rd, so they might have any/no color when this runs.",
@@ -198,8 +282,10 @@
           }
         }
       },
+      "description": "",
       "links": {
         "B1WyDPEyE": {
+          "@@type": "xod-project/Link",
           "id": "B1WyDPEyE",
           "input": {
             "nodeId": "ry-08PEJ4",
@@ -211,6 +297,7 @@
           }
         },
         "Bk-9i8EkV": {
+          "@@type": "xod-project/Link",
           "id": "Bk-9i8EkV",
           "input": {
             "nodeId": "Hylcs84yE",
@@ -222,6 +309,7 @@
           }
         },
         "BkyDvw4kV": {
+          "@@type": "xod-project/Link",
           "id": "BkyDvw4kV",
           "input": {
             "nodeId": "r1hGwvNyN",
@@ -233,6 +321,7 @@
           }
         },
         "By8fwDNyN": {
+          "@@type": "xod-project/Link",
           "id": "By8fwDNyN",
           "input": {
             "nodeId": "rymGDPNk4",
@@ -244,6 +333,7 @@
           }
         },
         "H1-6YP4JE": {
+          "@@type": "xod-project/Link",
           "id": "H1-6YP4JE",
           "input": {
             "nodeId": "r1yRPDNkE",
@@ -255,6 +345,7 @@
           }
         },
         "H14jHP4kE": {
+          "@@type": "xod-project/Link",
           "id": "H14jHP4kE",
           "input": {
             "nodeId": "HyNcu8EyV",
@@ -266,6 +357,7 @@
           }
         },
         "H18SvD4J4": {
+          "@@type": "xod-project/Link",
           "id": "H18SvD4J4",
           "input": {
             "nodeId": "r1hGwvNyN",
@@ -277,6 +369,7 @@
           }
         },
         "H1hmDvEyV": {
+          "@@type": "xod-project/Link",
           "id": "H1hmDvEyV",
           "input": {
             "nodeId": "ry-08PEJ4",
@@ -288,6 +381,7 @@
           }
         },
         "HJFnLPV1N": {
+          "@@type": "xod-project/Link",
           "id": "HJFnLPV1N",
           "input": {
             "nodeId": "BkH3LwEkE",
@@ -299,6 +393,7 @@
           }
         },
         "Hk0VDDEyN": {
+          "@@type": "xod-project/Link",
           "id": "Hk0VDDEyN",
           "input": {
             "nodeId": "rymGDPNk4",
@@ -310,6 +405,7 @@
           }
         },
         "S1LjrPVyN": {
+          "@@type": "xod-project/Link",
           "id": "S1LjrPVyN",
           "input": {
             "nodeId": "HyNcu8EyV",
@@ -321,6 +417,7 @@
           }
         },
         "SJ6jwvE1N": {
+          "@@type": "xod-project/Link",
           "id": "SJ6jwvE1N",
           "input": {
             "nodeId": "BJ9sDPVk4",
@@ -332,6 +429,7 @@
           }
         },
         "SJJaFPN1N": {
+          "@@type": "xod-project/Link",
           "id": "SJJaFPN1N",
           "input": {
             "nodeId": "r1YhYP4kE",
@@ -343,6 +441,7 @@
           }
         },
         "SJQwRvEyV": {
+          "@@type": "xod-project/Link",
           "id": "SJQwRvEyV",
           "input": {
             "nodeId": "ry-08PEJ4",
@@ -354,6 +453,7 @@
           }
         },
         "SJjg9wEJE": {
+          "@@type": "xod-project/Link",
           "id": "SJjg9wEJE",
           "input": {
             "nodeId": "r1YhYP4kE",
@@ -365,6 +465,7 @@
           }
         },
         "SJrPRvEJV": {
+          "@@type": "xod-project/Link",
           "id": "SJrPRvEJV",
           "input": {
             "nodeId": "rymGDPNk4",
@@ -376,6 +477,7 @@
           }
         },
         "SkgoBv4kN": {
+          "@@type": "xod-project/Link",
           "id": "SkgoBv4kN",
           "input": {
             "nodeId": "HyNcu8EyV",
@@ -387,6 +489,7 @@
           }
         },
         "Syh3KPNy4": {
+          "@@type": "xod-project/Link",
           "id": "Syh3KPNy4",
           "input": {
             "nodeId": "r1YhYP4kE",
@@ -398,6 +501,7 @@
           }
         },
         "ry_D0DNkV": {
+          "@@type": "xod-project/Link",
           "id": "ry_D0DNkV",
           "input": {
             "nodeId": "r1hGwvNyN",
@@ -411,123 +515,216 @@
       },
       "nodes": {
         "BJ9sDPVk4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "Skre8ROSv1-": "0.001"
           },
+          "description": "",
           "id": "BJ9sDPVk4",
+          "label": "",
           "position": {
             "x": -68,
             "y": 714
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/delay"
         },
         "BkH3LwEkE": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "BkH3LwEkE",
           "label": "SETUP",
           "position": {
             "x": -340,
             "y": 612
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/to-bus"
         },
         "HkLNDD4JV": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "2"
           },
+          "description": "",
           "id": "HkLNDD4JV",
+          "label": "",
           "position": {
             "x": 272,
             "y": 510
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "HkhqBvVyV": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "3"
           },
+          "description": "",
           "id": "HkhqBvVyV",
+          "label": "",
           "position": {
             "x": -340,
             "y": 306
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "HyNcu8EyV": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "F0bIxO7lC": "7",
             "a9nPX-E3Y": "82",
             "hFHIuGT5E": "6"
           },
+          "description": "",
           "id": "HyNcu8EyV",
+          "label": "",
           "position": {
             "x": -340,
             "y": 408
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/adafruitneopixel"
         },
         "Hylcs84yE": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "Hylcs84yE",
+          "label": "",
           "position": {
             "x": -340,
             "y": 510
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/begin"
         },
         "S1SsHw4kE": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "6"
           },
+          "description": "",
           "id": "S1SsHw4kE",
           "label": "RGB",
           "position": {
             "x": -272,
             "y": 306
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "SJfiBPN1E": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "6"
           },
+          "description": "",
           "id": "SJfiBPN1E",
+          "label": "",
           "position": {
             "x": -306,
             "y": 306
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "Sk4EwwNyE": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "1"
           },
+          "description": "",
           "id": "Sk4EwwNyE",
+          "label": "",
           "position": {
             "x": 102,
             "y": 510
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "SyoCvvV1V": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "SyoCvvV1V",
           "label": "SETUP",
           "position": {
             "x": -136,
             "y": 714
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/from-bus"
         },
         "SyumvP4yN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "0"
           },
+          "description": "",
           "id": "SyumvP4yN",
+          "label": "",
           "position": {
             "x": -68,
             "y": 510
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "r1WBAvEkV": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "50"
           },
@@ -538,79 +735,145 @@
             "x": 102,
             "y": 408
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "r1YhYP4kE": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "r1YhYP4kE",
+          "label": "",
           "position": {
             "x": -68,
             "y": 816
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "@/delay-gate"
         },
         "r1hGwvNyN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "NcF1brHWk": "0"
           },
+          "description": "",
           "id": "r1hGwvNyN",
+          "label": "",
           "position": {
             "x": 238,
             "y": 612
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/set-pixel-color"
         },
         "r1yRPDNkE": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "r1yRPDNkE",
+          "label": "",
           "position": {
             "x": -68,
             "y": 918
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/show"
         },
         "rJEgqwNJN": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "B1x2RV3eZ": "0.001"
           },
+          "description": "",
           "id": "rJEgqwNJN",
+          "label": "",
           "position": {
             "x": 68,
             "y": 714
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/core/constant-number"
         },
         "ry-08PEJ4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "NcF1brHWk": "75"
           },
+          "description": "",
           "id": "ry-08PEJ4",
+          "label": "",
           "position": {
             "x": -102,
             "y": 612
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "adafruit/adafruit-neopixel/set-pixel-color"
         },
         "ryJJDD4yV": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
+          "boundLiterals": {
+          },
+          "description": "",
           "id": "ryJJDD4yV",
           "label": "SETUP",
           "position": {
             "x": -102,
             "y": 408
           },
+          "size": {
+            "height": 0,
+            "width": 0
+          },
           "type": "xod/patch-nodes/from-bus"
         },
         "rymGDPNk4": {
+          "@@type": "xod-project/Node",
+          "arityLevel": 1,
           "boundLiterals": {
             "NcF1brHWk": "0"
           },
+          "description": "",
           "id": "rymGDPNk4",
+          "label": "",
           "position": {
             "x": 68,
             "y": 612
+          },
+          "size": {
+            "height": 0,
+            "width": 0
           },
           "type": "adafruit/adafruit-neopixel/set-pixel-color"
         }
       },
       "path": "@/main"
     }
-  }
+  },
+  "version": "0.0.0"
 }
