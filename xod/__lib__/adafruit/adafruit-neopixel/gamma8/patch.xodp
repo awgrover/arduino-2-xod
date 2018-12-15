@@ -1,30 +1,40 @@
 {
+   "description" : "",
    "nodes" : [
       {
+         "label" : "adafruitneopixel",
+         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
          "position" : {
             "y" : 102,
             "x" : 68
          },
-         "id" : "i-adafruitneopixel",
-         "label" : "adafruitneopixel",
-         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel"
+         "id" : "i-adafruitneopixel"
       },
       {
+         "label" : "trigger",
+         "type" : "xod/patch-nodes/input-pulse",
+         "position" : {
+            "x" : 136,
+            "y" : 102
+         },
+         "id" : "i-trigger"
+      },
+      {
+         "type" : "xod/patch-nodes/not-implemented-in-xod",
          "id" : "cpp",
          "position" : {
-            "x" : 68,
-            "y" : 204
-         },
-         "type" : "xod/patch-nodes/not-implemented-in-xod"
+            "y" : 204,
+            "x" : 68
+         }
       },
       {
-         "label" : "dev",
-         "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel",
          "position" : {
-            "y" : 306,
-            "x" : 68
+            "x" : 68,
+            "y" : 306
          },
-         "id" : "o-dev"
+         "id" : "o-dev",
+         "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel",
+         "label" : "dev"
       },
       {
          "position" : {
@@ -32,9 +42,8 @@
             "y" : 306
          },
          "id" : "o-val",
-         "label" : "val",
-         "type" : "xod/patch-nodes/output-number"
+         "type" : "xod/patch-nodes/output-number",
+         "label" : "val"
       }
-   ],
-   "description" : ""
+   ]
 }

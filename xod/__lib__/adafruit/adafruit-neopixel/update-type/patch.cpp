@@ -8,9 +8,8 @@ struct State {
 
 void evaluate(Context ctx) {
 
-  if (
-    !isInputDirty<input_adafruitneopixel>(ctx)
-  ) return;
+  # only act on trigger, inputs not relevant for this
+  if ( !isInputDirty<input_trigger>(ctx) ) return;
 
   // var names are valid c++ because we got them from the arglist of the c++ method
   auto t = getValue<input_t>(ctx); // neoPixelType

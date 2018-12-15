@@ -27,4 +27,5 @@ void evaluate(Context ctx) {
   Type object = new (state->mem) Adafruit_NeoPixel(  );
 
   emitValue<output_adafruitneopixel>(ctx, object);
+  emitValue<output_done>(ctx, object);
 }

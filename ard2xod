@@ -73,6 +73,7 @@ void evaluate(Context ctx) {
   Type object = new (state->mem) {% $arduino{'class_name'} %}( {% join ", ", @args; %} );
 
   emitValue<output_{% $cpp{'cons_patch_name'} %}>(ctx, object);
+  emitValue<output_done>(ctx, object);
 }
 EOS
 
@@ -599,14 +600,17 @@ sub do_constructor {
 
       add_nodes($xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
 
+      # the pulse
+      my $pulse = [ done => "xod/patch-nodes/output-pulse" ]; # pulse for "done"
+
       if ($ct == 0) {
         # FIXME: description => 'arduino: $classname, xod: $typename, cpp: $typename'
         # self creates a type using patch-name
         # There's a bug: the deduced type-name in the cons code from output-self is actually the label name, not the patch name
-        add_nodes($xodp, [$defn->{'cpp'}->{'cons_patch_name'} => 'xod/patch-nodes/output-self']);
+        add_nodes($xodp, [$defn->{'cpp'}->{'cons_patch_name'} => 'xod/patch-nodes/output-self'], $pulse);
         }
       else {
-        add_nodes($xodp, [ dev => $defn->{'xod'}->{'output_type_name'}] );
+        add_nodes($xodp, [ dev => $defn->{'xod'}->{'output_type_name'}], $pulse );
         }
       },
 
