@@ -301,6 +301,7 @@
       }
     }
   ],
+  "description": "Turn all pixels light green, one by one.\nRepeat.\nBased on the Adafruit Neopixel example \"simple\",",
   "links": [
     {
       "id": "B17kL5V14",

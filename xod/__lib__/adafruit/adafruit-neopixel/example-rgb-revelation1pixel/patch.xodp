@@ -145,6 +145,7 @@
       }
     }
   ],
+  "description": "Light up the first pixel in order: OFF, Red, Green, Blue.\nLike the 3 pixel revelation, but this only requires 1 pixel.\nThis should help you decode the right RGB code to use (e.g. GRB, etc).",
   "links": [
     {
       "id": "B1nAA-7lN",

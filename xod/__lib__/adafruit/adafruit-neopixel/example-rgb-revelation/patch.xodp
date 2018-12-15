@@ -61,6 +61,7 @@
       }
     }
   ],
+  "description": "Light up the first 3 pixels in Red, Green, Blue order.\nNearest the Arduino should be Red, then Green, then Blue.\nThis should help you decode the right RGB code to use (e.g. GRB, etc).",
   "links": [
     {
       "id": "B1fmc-Xe4",
