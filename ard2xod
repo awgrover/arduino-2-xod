@@ -137,6 +137,7 @@ void evaluate(Context ctx) {
 
     emitValue<output_dev>(ctx, object);
     emitValue<output_out>(ctx, value);
+    emitValue<output_done>(ctx, value);
   }
 
   // Emit the value if object is dirty ? or by pulse?
@@ -146,6 +147,7 @@ void evaluate(Context ctx) {
 
     emitValue<output_dev>(ctx, object);
     emitValue<output_out>(ctx, value );
+    emitValue<output_done>(ctx, value);
     }
 
   else {
@@ -164,7 +166,7 @@ sub do_make {
   }
   do_constructor();
   do_methods();
-  do_properties();
+  #do_properties(); # skip them
   do_specialize();
   }
 

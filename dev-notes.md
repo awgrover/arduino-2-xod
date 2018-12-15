@@ -225,6 +225,7 @@ To make this usable by a normal person, there should be some automation for gett
 * Use common inline doc comments as descriptions for xod
 
 # Current Plan
+
 - [ ] stabilise i/o node ids (everything breaks when I regen): 
 -- [x] comment out/disable the #include enablement, so we can continue working
 -- [ ] convert existing examples to use new ids
@@ -262,6 +263,7 @@ clang cindex ast issues for .h files
 [ ] skips arguments if not named in the signature declaration: e.g. void fubar(int);` Haven't checked the .cpp
 [ ] documentation. inlinedocs (~javadoc) style would be nice to extract and use.
 
+- [ ] ask about properties
 
 
 
