@@ -87,20 +87,8 @@ struct State {
 
 void evaluate(Context ctx) {
 
-  {% 
-  if (@{$method{'arguments'}}) {
-    $OUT .= "if (\n    ";
-
-    our @dirty;
-    push @dirty, "!isInputDirty<input_".$xod{'cons_patch_name'}.">(ctx)";
-    foreach my $arg ( @$args ) {
-      push @dirty, "!isInputDirty<input_".$arg->{'name'}.">(ctx)";
-    } 
-    $OUT .= join " &&\n    ",@dirty;
-    $OUT .= "\n  ) return;";
-    }
-  else { '// no inputs' }
-  %}
+  # only act on trigger, inputs not relevant for this
+  if ( !isInputDirty<input_trigger>(ctx) ) return;
 
   // var names are valid c++ because we got them from the arglist of the c++ method
   {% 
@@ -530,7 +518,10 @@ sub do_methods {
         [$defn->{'cpp'}->{'cons_patch_name'} => $defn->{'xod'}->{'input_type_name'}], 
 
         # the args
-        @$args
+        @$args,
+
+        # the pulse
+        [ trigger => "xod/patch-nodes/input-pulse" ] # pulse for "do it"
         );
 
       # cpp
