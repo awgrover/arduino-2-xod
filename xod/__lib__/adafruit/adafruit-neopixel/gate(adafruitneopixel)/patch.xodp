@@ -4,39 +4,39 @@
          "boundLiterals" : {
             "__out__" : "True"
          },
-         "position" : {
-            "x" : 68,
-            "y" : 0
-         },
+         "type" : "xod/patch-nodes/input-boolean",
+         "label" : "EN",
          "description" : "Whether values should pass through",
          "id" : "B1P1nFwaM",
-         "type" : "xod/patch-nodes/input-boolean",
-         "label" : "EN"
-      },
-      {
-         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
-         "label" : "IN",
-         "id" : "SJ-1mZPTz",
          "position" : {
             "y" : 0,
-            "x" : 0
+            "x" : 68
          }
       },
       {
          "position" : {
-            "y" : 204,
-            "x" : 0
+            "x" : 0,
+            "y" : 0
          },
-         "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel",
-         "label" : "OUT",
-         "id" : "OkPg7GDaW"
+         "id" : "SJ-1mZPTz",
+         "label" : "IN",
+         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel"
       },
       {
+         "id" : "OkPg7GDaW",
          "position" : {
             "x" : 0,
-            "y" : 102
+            "y" : 204
          },
+         "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel",
+         "label" : "OUT"
+      },
+      {
          "type" : "xod/patch-nodes/not-implemented-in-xod",
+         "position" : {
+            "y" : 102,
+            "x" : 0
+         },
          "id" : "rJZl7twTQ"
       }
    ],

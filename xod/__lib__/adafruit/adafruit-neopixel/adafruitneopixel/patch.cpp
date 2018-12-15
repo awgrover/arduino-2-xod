@@ -28,7 +28,6 @@ void evaluate(Context ctx) {
   
 
   Type object = new (state->mem) Adafruit_NeoPixel( n, p, t );
-  //Serial.print(millis());Serial.print(F(" "));Serial.print(F("o: "));Serial.println((int)object);
 
   emitValue<output_adafruitneopixel>(ctx, object);
 }

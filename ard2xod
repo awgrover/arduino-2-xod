@@ -176,6 +176,7 @@ sub do_make {
   do_constructor();
   do_methods();
   do_properties();
+  do_specialize();
   }
 
 sub ard_dot_h {
@@ -310,6 +311,7 @@ sub do_properties {
 
   my ($ard,$xod) = @ARGV;
 
+  $gSwitches->{'limit'} = 5 if !$gSwitches->{'limit'};
 
   make_patches(
     'property',
@@ -375,7 +377,6 @@ sub definitions {
 
   if (!-e "$xod/project.xod") {
     say STDERR "# Expected a xod-project-dir with project.xod in $xod";
-    die;
     exit 1;
     }
 
@@ -888,6 +889,8 @@ sub specialize_cpp {
 
 sub specialize_xodp {
   my ($xod, $defn, $patch_name, $this_patch_name, $an_abstract_xodp_file) = @_;
+  # makes the "specialized" nodes for things like if-then-else
+  # by copying existing ones
 
   my $xodp = decode_json( `cat $an_abstract_xodp_file` );
   say "json: ",Dumper($xodp);
@@ -953,6 +956,23 @@ sub specialize_xodp {
   return $xodp;
   }
 
+sub do_capture {
+  my ($xod) = @ARGV;
+  # we tend to build into $xoddir/__lib__
+  # so, we should capture for this .git
+
+  if (!-e "$xod/project.xod") {
+    say STDERR "# Expected a xod-project-dir with project.xod in $xod";
+    exit 1;
+    }
+
+  my $libname = basename($xod);
+  my $author = basename(dirname($xod));
+  system('rm','-rf', "xod/__lib__/$author/$libname") and die($!);
+  system('cp', '-R', $xod, "xod/__lib__/$author") and die($!);
+  say "cp your example xods from ",dirname($xoddir)," to xod/";
+  }
+
 my %commands = (
     make => [
         ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the xod library',
@@ -985,6 +1005,9 @@ my %commands = (
         '--limit:n' => 'only make this many properties',
         'help|h|H'=>'this',
         ],
+    capture => [
+      '' => '--- xod-proj-dir' # copy into xod-dir __lib__
+      ],
     # util
     ast => [ # --- ardlibdir
       '' => 'dump the ast',

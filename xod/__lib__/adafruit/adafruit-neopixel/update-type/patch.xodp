@@ -6,43 +6,43 @@
             "y" : 102,
             "x" : 68
          },
+         "id" : "i-adafruitneopixel",
          "label" : "adafruitneopixel",
-         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
-         "id" : "DgjXNc4Xr"
+         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel"
       },
       {
-         "id" : "txzzmJe5P",
          "type" : "xod/patch-nodes/input-number",
          "label" : "t",
+         "id" : "i-t",
          "position" : {
-            "y" : 102,
-            "x" : 136
+            "x" : 136,
+            "y" : 102
          }
       },
       {
+         "id" : "cpp",
          "position" : {
             "y" : 204,
             "x" : 68
          },
-         "type" : "xod/patch-nodes/not-implemented-in-xod",
-         "id" : "Xgj6nSJKF"
+         "type" : "xod/patch-nodes/not-implemented-in-xod"
       },
       {
+         "id" : "o-dev",
          "position" : {
-            "x" : 68,
-            "y" : 306
+            "y" : 306,
+            "x" : 68
          },
-         "id" : "aqKdzeq5v",
          "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel",
          "label" : "dev"
       },
       {
-         "label" : "done",
          "type" : "xod/patch-nodes/output-pulse",
-         "id" : "Su4wuQ0om",
+         "label" : "done",
+         "id" : "o-done",
          "position" : {
-            "x" : 136,
-            "y" : 306
+            "y" : 306,
+            "x" : 136
          }
       }
    ]

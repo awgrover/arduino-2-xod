@@ -1,49 +1,49 @@
 {
-   "description" : "property ",
    "nodes" : [
       {
+         "id" : "i-adafruitneopixel",
          "position" : {
             "y" : 102,
             "x" : 68
          },
-         "label" : "adafruitneopixel",
          "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
-         "id" : "mzdSrebuE"
+         "label" : "adafruitneopixel"
       },
       {
-         "position" : {
-            "x" : 136,
-            "y" : 102
-         },
+         "type" : "xod/patch-nodes/input-number",
          "label" : "val",
-         "id" : "UPyCO-5IB",
-         "type" : "xod/patch-nodes/input-number"
-      },
-      {
-         "type" : "xod/patch-nodes/not-implemented-in-xod",
-         "id" : "zG6Y9fJDC",
+         "id" : "i-val",
          "position" : {
-            "y" : 204,
-            "x" : 68
+            "y" : 102,
+            "x" : 136
          }
       },
       {
          "position" : {
             "x" : 68,
-            "y" : 306
+            "y" : 204
          },
-         "id" : "zA-fvEHIs",
+         "id" : "cpp",
+         "type" : "xod/patch-nodes/not-implemented-in-xod"
+      },
+      {
+         "id" : "o-out",
+         "position" : {
+            "y" : 306,
+            "x" : 68
+         },
          "type" : "xod/patch-nodes/output-number",
          "label" : "out"
       },
       {
+         "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel",
+         "label" : "dev",
+         "id" : "o-dev",
          "position" : {
             "y" : 306,
             "x" : 136
-         },
-         "label" : "dev",
-         "id" : "Sh2aes9-s",
-         "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel"
+         }
       }
-   ]
+   ],
+   "description" : "property "
 }

@@ -22,9 +22,6 @@ void evaluate(Context ctx) {
   auto object  = getValue<input_adafruitneopixel>(ctx); // Adafruit_NeoPixel
 
   object->setPixelColor( n, r, g, b ); // void
-  //Serial.print(millis());Serial.print(F(" "));Serial.print(F("setp: "));Serial.print((int)object);Serial.print(F(","));
-  //Serial.print(n);Serial.print(F(","));Serial.print(r);Serial.print(F(","));Serial.print(g);Serial.print(F(","));Serial.print(b);
-  //Serial.println();
   
   emitValue<output_dev>(ctx, object); // for chaining
 

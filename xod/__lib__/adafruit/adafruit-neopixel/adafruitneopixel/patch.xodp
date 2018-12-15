@@ -1,49 +1,49 @@
 {
-   "description" : "constructor\nhttps://github.com/adafruit/Adafruit_NeoPixel\nArduino: Adafruit_NeoPixel\nXOD: adafruit/adafruit-neopixel/input-adafruitneopixel\ncpp postfix: adafruitneopixel",
    "nodes" : [
       {
+         "label" : "n",
+         "type" : "xod/patch-nodes/input-number",
          "position" : {
             "x" : 68,
             "y" : 102
          },
-         "label" : "n",
-         "id" : "F0bIxO7lC",
-         "type" : "xod/patch-nodes/input-number"
+         "id" : "i-n"
       },
       {
+         "id" : "i-p",
          "position" : {
-            "y" : 102,
-            "x" : 136
+            "x" : 136,
+            "y" : 102
          },
-         "id" : "hFHIuGT5E",
          "type" : "xod/patch-nodes/input-number",
          "label" : "p"
       },
       {
+         "type" : "xod/patch-nodes/input-number",
+         "label" : "t",
+         "id" : "i-t",
          "position" : {
             "x" : 204,
             "y" : 102
-         },
-         "label" : "t",
-         "id" : "a9nPX-E3Y",
-         "type" : "xod/patch-nodes/input-number"
+         }
       },
       {
          "position" : {
-            "x" : 68,
-            "y" : 204
+            "y" : 204,
+            "x" : 68
          },
-         "type" : "xod/patch-nodes/not-implemented-in-xod",
-         "id" : "jAWx49fNk"
+         "id" : "cpp",
+         "type" : "xod/patch-nodes/not-implemented-in-xod"
       },
       {
+         "id" : "o-adafruitneopixel",
          "position" : {
             "y" : 306,
             "x" : 68
          },
-         "label" : "adafruitneopixel",
-         "id" : "yHHnTzARq",
-         "type" : "xod/patch-nodes/output-self"
+         "type" : "xod/patch-nodes/output-self",
+         "label" : "adafruitneopixel"
       }
-   ]
+   ],
+   "description" : "constructor\nhttps://github.com/adafruit/Adafruit_NeoPixel\nArduino: Adafruit_NeoPixel\nXOD: adafruit/adafruit-neopixel/input-adafruitneopixel\ncpp postfix: adafruitneopixel"
 }

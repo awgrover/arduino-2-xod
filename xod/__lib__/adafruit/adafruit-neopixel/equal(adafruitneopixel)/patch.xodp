@@ -4,13 +4,13 @@
          "boundLiterals" : {
             "__in__" : "False"
          },
-         "position" : {
-            "x" : 68,
-            "y" : 204
-         },
-         "id" : "H1E8AuSPkZ",
+         "type" : "xod/patch-nodes/output-boolean",
          "label" : "OUT",
-         "type" : "xod/patch-nodes/output-boolean"
+         "id" : "H1E8AuSPkZ",
+         "position" : {
+            "y" : 204,
+            "x" : 68
+         }
       },
       {
          "position" : {
@@ -22,21 +22,21 @@
          "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel"
       },
       {
+         "id" : "abstract",
          "position" : {
-            "y" : 100,
-            "x" : 100
+            "x" : 100,
+            "y" : 100
          },
-         "type" : "xod/patch-nodes/not-implemented-in-xod",
-         "id" : "abstract"
+         "type" : "xod/patch-nodes/not-implemented-in-xod"
       },
       {
-         "id" : "rJXICuSwyW",
-         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
          "label" : "IN2",
+         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
          "position" : {
             "y" : 0,
             "x" : 68
-         }
+         },
+         "id" : "rJXICuSwyW"
       }
    ],
    "description" : "Outputs true if `IN1` = `IN2`, and false otherwise"

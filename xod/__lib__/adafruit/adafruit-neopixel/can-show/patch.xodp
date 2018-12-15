@@ -1,39 +1,39 @@
 {
    "nodes" : [
       {
+         "id" : "i-adafruitneopixel",
+         "position" : {
+            "y" : 102,
+            "x" : 68
+         },
+         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
+         "label" : "adafruitneopixel"
+      },
+      {
          "position" : {
             "x" : 68,
-            "y" : 102
+            "y" : 204
          },
-         "label" : "adafruitneopixel",
-         "id" : "uuxxV5j-V",
-         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel"
+         "id" : "cpp",
+         "type" : "xod/patch-nodes/not-implemented-in-xod"
       },
       {
-         "type" : "xod/patch-nodes/not-implemented-in-xod",
-         "id" : "RHaBTSNKV",
-         "position" : {
-            "y" : 204,
-            "x" : 68
-         }
-      },
-      {
-         "id" : "vKfzzi4if",
-         "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel",
          "label" : "dev",
+         "type" : "adafruit/adafruit-neopixel/output-adafruitneopixel",
          "position" : {
             "x" : 68,
             "y" : 306
-         }
+         },
+         "id" : "o-dev"
       },
       {
+         "type" : "xod/patch-nodes/output-boolean",
+         "label" : "val",
+         "id" : "o-val",
          "position" : {
             "y" : 306,
             "x" : 136
-         },
-         "type" : "xod/patch-nodes/output-boolean",
-         "id" : "dWRBJO7AE",
-         "label" : "val"
+         }
       }
    ],
    "description" : ""

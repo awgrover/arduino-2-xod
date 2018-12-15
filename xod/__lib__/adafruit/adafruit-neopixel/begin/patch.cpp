@@ -15,7 +15,6 @@ void evaluate(Context ctx) {
 
   auto object  = getValue<input_adafruitneopixel>(ctx); // Adafruit_NeoPixel
 
-  //Serial.print(millis());Serial.print(F(" "));Serial.print(F("begin: "));Serial.println((int)object);
   object->begin(  ); // void
   
   emitValue<output_dev>(ctx, object); // for chaining
