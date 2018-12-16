@@ -208,12 +208,9 @@ void evaluate(Context ctx) {
 EOS
 
 sub do_make {
-  {
-  local @ARGV = @ARGV;
-  pop @ARGV;
-  # FIXME: use the library name from this:
-  do_library();
-  }
+  # --- ardlibdir
+  $xoddir = do_library();
+  push @ARGV, $xoddir;
   do_constructor();
   do_methods();
   do_static_methods();
@@ -247,18 +244,6 @@ sub ard_lib_property {
         };
 
     $properties{ $ard }->{$property};
-    }
-
-sub ard_lib_name {
-    # from a directory and library_properties.author
-    # -> good xod name
-    my ($ard) = @_;
-    
-    # could cache
-    my $lib_name = lc( ard_lib_property($ard,'author') . "/" . basename($ard) );
-    $lib_name =~ s/_/-/g;
-    $lib_name =~ s/[^0-9a-z\/-]//g;
-    $lib_name;
     }
 
 sub xodball2tmp {
@@ -407,17 +392,17 @@ sub do_properties {
 sub definitions {
   # common values we need from $ard/$xod stuff
   # returns $ast (for first class), $defn
-  my ($ard, $xod) = @_;
+  my ($ard, $xod, $xod_is_new) = @_;
 
   my $libname;
   if ($xod =~ /\/__lib__\//) {
-    $libname = ( basename(dirname($xod)) . "/" . basename($xod) );
+    $libname = xod_lib_name($ard);
     if ( $libname =~ /[^a-zA-Z0-9\/-]/ ) {
       die "xod dir for libraries must only use valid xod chars: [a-zA-Z0-9-], saw '$libname' from '$xod'" 
       }
     }
 
-  if (!-e "$xod/project.xod") {
+  if (!$xod_is_new && !-e "$xod/project.xod") {
     say STDERR "# Expected a xod-project-dir with project.xod in $xod";
     exit 1;
     }
@@ -451,6 +436,7 @@ sub definitions {
   $defn{'arduino'}->{'github_url'} = $gSwitches->{'github-url'} || ard_lib_property($ard,'url');
   warn "The github url was in library.properties: ".ard_lib_property($ard,'url') if $gSwitches->{'github-url'} && ard_lib_property($ard,'url');
 
+  $defn{'xod'}->{'libname'} = $libname;
   $defn{'xod'}->{'cons_patch_name'} = lc( $defn{'arduino'}->{'class_name'} ); # base typename & patchname # WAS $cons_patch_name
   $defn{'xod'}->{'cons_patch_name'} =~ s/_/-/g; # xod wants -
   if ($BUG{'type_name_dash'} ) { $defn{'xod'}->{'cons_patch_name'} =~ s/-//g; }; # remove -
@@ -462,7 +448,7 @@ sub definitions {
   $defn{'cpp'}->{'cons_patch_name'} = $defn{'xod'}->{'cons_patch_name'}; # WAS cpp_patch_name
   $defn{'cpp'}->{'cons_patch_name'} =~ cpp_safe_token( $defn{'cpp'}->{'cons_patch_name'} ); # cpp wants _
   
-  $defn{'cpp'}->{'cons_namespace'} = ard_lib_name($ard); # WAS namespace
+  $defn{'cpp'}->{'cons_namespace'} = xod_lib_name($ard); # WAS namespace
   $defn{'cpp'}->{'cons_namespace'} =~ s/\//__/g; # lib path / -> __ for cpp
   $defn{'cpp'}->{'cons_namespace'} .= "__" . $defn{'cpp'}->{'cons_patch_name'};
   $defn{'cpp'}->{'cons_namespace'} = cpp_safe_token( $defn{'cpp'}->{'cons_namespace'} );
@@ -942,6 +928,27 @@ sub do_library {
     fail_with_help("# Expected at least 1 arduino library", 'library') if !$any;
     }
 
+sub xod_lib_name {
+  my ($ard) = @_;
+  my $xod = xod_lib_dir($ard);
+  basename(dirname($xod)) . "/" .basename($xod);
+  }
+
+sub xod_lib_dir {
+  my ($ardlib) = @_;
+  # lib-dir: $xod/__lib__/$user/$ardlibname-ll
+
+  return $gSwitches->{'xoddir'} if $gSwitches->{'xoddir'};
+  my $lib_dir = $xoddir;
+  $lib_dir .= "/" . ($gSwitches->{'author'} || config()->{'xod'}->{'username'});
+  my $lib_name = lc( ard_lib_property($ardlib,'name') );
+    $lib_name =~ s/[_ ]/-/g;
+    $lib_name =~ s/[^0-9a-z\/-]//g;
+  $lib_dir .= "/" . $lib_name;
+  $lib_dir .= '-LL';
+  $lib_dir;
+  }
+
 sub _do_library {
     my ($ard) = @_;
 
@@ -950,25 +957,64 @@ sub _do_library {
         exit 1;
         }
 
-    # Dir
-    my $subdir = "" . $xoddir;
-    $subdir .= "/" . ard_lib_name($ard);
-    system('mkdir','-p', $subdir) and die;
+    my $subdir = xod_lib_dir($ard);
+    if (!$gSwitches->{'dryrun'}) {
+      system('mkdir','-p', $subdir) and die;
+      }
     say "made $subdir";
 
     # project.xod
+    my $username = $gSwitches->{'author'} || config()->{'xod'}->{'username'};
+    my @authors = grep {$_} (
+      $username,
+      $username ? "https://forum.xod.io/u/$username" : undef,
+      config()->{'email'},
+      ard_lib_property($ard, 'author'), 
+      ard_lib_property($ard, 'maintainer')
+      );
+
+    my ($ast, %defn) = definitions( $ard, $subdir, 'xod-is-new' );
+
+    my @description;
+    # classname
+    push @description, $defn{'xod'}->{'libname'};
+
+    push @description, ard_lib_property($ard, 'sentence');
+    push @description, ard_lib_property($ard, 'paragraph') if ard_lib_property($ard, 'sentence') ne ard_lib_property($ard, 'paragraph');
+
+    push @description,'';
+    push @description, "Mechanically converted by ".($username ? "https://forum.xod.io/u/$username" : '')." using github.com:awgrover/arduino-2-xod from:";
+
+    # $lib.name ($dirname) by $author. Version $version
+    my $ardlibname = ard_lib_property($ard,'name');
+    my $arddirname = basename($ard);
+    push @description, $ardlibname . ($ardlibname eq $arddirname ? '' : " ($arddirname)" ) . " by ".ard_lib_property($ard, 'author'). ". Version ".ard_lib_property($ard,'version');
+
+    # url
+    my $src_url = $gSwitches->{'github-url'} || ard_lib_property($ard,'url');
+    if (!$src_url) {
+      warn "No url from --github-url nor $ard/library.properties[url]\n";
+      push @description, "Unknown source";
+      }
+    else {
+      push @description, $gSwitches->{'github-url'} || ard_lib_property($ard,'url');
+      }
+
     my %xod_project = (
-        authors => [ grep {$_} (ard_lib_property($ard, 'author'), ard_lib_property($ard, 'maintainer')) ],
-        name => ard_lib_property($ard,'name'),
-        description => ard_lib_property($ard, 'sentence') . "\n" . ard_lib_property($ard, 'paragraph'),
-        version => ard_lib_property($ard,'version'),
+        authors => \@authors,
+        name => $defn{'xod'}->{'cons_patch_name'},
+        description => join("\n",@description),
+        version => ($gSwitches->{'version'} || '1.0.0'),
         );
 
     # FIXME: replace keys rather than overwriting all keys
-    my $ph = IO::File->new("$subdir/project.xod",'w') or die($!);
+    my $ph = $gSwitches->{'dryrun'} ? *STDOUT : IO::File->new("$subdir/project.xod",'w') or die($!);
     print $ph JSON->new->pretty->encode(\%xod_project);
-    say "wrote $subdir/project.xod";
 
+    say join("\n",@description);
+    say "wrote $subdir/project.xod";
+    
+    $subdir;
     }
 
 sub do_specialize {
@@ -1104,42 +1150,83 @@ sub do_capture {
   say "# cp'd everything to xod/__lib__/$author/$libname";
   }
 
+my %ConfigDesc = (
+  xod => {
+    username => 'xod account username for author',
+    },
+  email => 'email for contact by library users',
+  );
+
+sub do_config {
+  say "# .config is json";
+  print JSON->new->pretty->canonical->encode(\%ConfigDesc);
+  }
+
+sub config {
+  state $config;
+
+  if ($config) {
+    return $config;
+    }
+
+  if (!-e '.config') {
+    $config = {};
+    }
+  else {
+    $config =  decode_json( `cat .config` );
+    die "Expected a hash from .config" if ref($config) ne 'HASH';
+    }
+
+  # sub-parts
+  $config->{'xod'} ||= {};
+
+  return $config;
+  }
+
 my %commands = (
     make => [
-        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the xod library',
-        '--github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
+        ''=>'--- ardlibdir # Make the xod library',
+        'github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
         'help|h|H'=>'this',
         ],
     # Parts
     library => [
         ''=>'--- ardlibdir # Make the xod library dir/properties',
+        'version:s' => 'Use this version for the project/library (0.0.0), default is 1.0.0',
+        'xoddir:s' => 'Create library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
+        'author' => 'Use this as the xod-author, default is ./.config[xod][username]',
+        'dryrun|n' => 'Don\'t make changes',
         'help|h|H'=>'this',
         ],
     constructor => [ 
-        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the constructor nodes',
-        '--github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
+        ''=>'--- ardlibdir # Make the constructor nodes',
+        'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
+        'github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
         'help|h|H'=>'this',
         ],
     methods => [ 
-        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public method nodes',
-        '--only:s' => 'only make this exact method name',
-        '--limit:n' => 'only make this many methods',
+        ''=>'--- ardlibdir # Make the public method nodes',
+        'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
+        'only:s' => 'only make this exact method name',
+        'limit:n' => 'only make this many methods',
         'help|h|H'=>'this',
         ],
     static_methods => [ 
-        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public static method nodes',
-        '--only:s' => 'only make this exact method name',
-        '--limit:n' => 'only make this many methods',
+        ''=>'--- ardlibdir # Make the public static method nodes',
+        'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
+        'only:s' => 'only make this exact method name',
+        'limit:n' => 'only make this many methods',
         'help|h|H'=>'this',
         ],
     specialize => [
-        ''=>'--- ardlibdir xod-proj-dir # create specialization patches',
-        '--limit:n' => 'only make this many properties',
+        ''=>'--- ardlibdir # create specialization patches',
+        'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
+        'limit:n' => 'only make this many properties',
         'help|h|H'=>'this',
         ],
     properties => [ 
         ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public property nodes',
-        '--limit:n' => 'only make this many properties',
+        'limit:n' => 'only make this many properties',
         'help|h|H'=>'this',
         ],
     capture => [
@@ -1154,6 +1241,9 @@ my %commands = (
         ''=>'Unpack a .xodball into /tmp/xodball/* for further processing',
         'help|h|H'=>'this',
         ],
+    config => [
+      '' => 'describe .config file',
+      ],
     );
 
 sub fail_with_help {
@@ -1161,7 +1251,7 @@ sub fail_with_help {
     say STDERR $msg;
     @ARGV = qw('--help');
     while(my ($c,$opdef) = each(%commands)) {
-        say STDERR $c;
+        local $0 = "$0 $c";
         awgrover::Getopt::xprintSwitchHelp(@$opdef);
         }
     exit 1;

@@ -240,9 +240,26 @@ To make this usable by a normal person, there should be some automation for gett
 -- [x] skip
 -- [o] add back in properly: clang doesn't report args
 
-- [ ] clean up $xoddir & examples
+- [x] clean up $xoddir & examples
 
-- [ ] Change state requires pulse, calculation == inputs
+- [ ] publish as my lib
+-- [x] class name as lib name
+    project description:
+        $classname
+        Converted by $tool from: 
+        $lib.name ($dirname if diff) by $author. Version $version
+        $url
+        $sentence
+        $paragraph don't include if identical
+    and as readme patch as comment
+-- [x] print description for publishing
+-- [ ] versioning
+    test 0.0.0-$ard.$vers.$n
+-- [ ] change author: read forum
+
+- [ ] try: https://forum.xod.io/t/trial-arduino-xod-converter-for-libraries/1484/2
+
+- [ ] Change state (impure) requires pulse, calculation == inputs
 
 - [x] look into diagnostic messages from libclang. maybe it's telling us something. maybe we need ` std=c++11` cf. https://stackoverflow.com/questions/37098725/parsing-with-libclang-unable-to-parse-certain-tokens-python-in-windows.
 -- it was #includes, experimented some
@@ -325,10 +342,11 @@ Philosophy of XOD
 -- I output a "done" pulse. should be "did" for a pulse. But, should it be a pulse or boolean? E.g. after set-pixel-color, do show. so thread them somehow.
 [ ] doing the "simple" example, I discovered that the threading is probably better done by pulses. Then "select" is usable. However, then "gate" is not. Will have to see how things go.
 [ ] impedence mismatch: pots 0..1, rgb 255
+[ ] bridging pure/impure world: data to pulse
 
 enums
 [ ] need them! not clear how to do the right thing auto-converting. neopixel is NOT enums, but a bunch of #defines. sigh.
--- does this implie some kind of per-ard-lib rules for subsequent conversions? Or options? like `./ard2xod --defines2enums pixel-order='NEO_[RGB]*'` that adds stuff after main autoconvert step? as part of the web-interface would be cool.
+-- does this imply some kind of per-ard-lib rules for subsequent conversions? Or options? like `./ard2xod --defines2enums pixel-order='NEO_[RGB]*'` that adds stuff after main autoconvert step? as part of the web-interface would be cool.
 
 Abstract
 [ ] add generics. "if-else" should be fully generic, never need a specialized.
