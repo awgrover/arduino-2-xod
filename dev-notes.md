@@ -232,15 +232,17 @@ To make this usable by a normal person, there should be some automation for gett
 --- [x] name/number i/o's scheme. 
 
 - [x] convert to pulse-chain
--- [ ] test
+-- [x] test
 
-- [ ] put examples in right place in lib/github
+- [x] put examples in right place in lib/github
 
 - [ ] statics
 -- [ ] skip
 -- [ ] add back in properly
 
 - [ ] clean up $xoddir & examples
+
+- [ ] Change state requires pulse, calculation == inputs
 
 - [x] look into diagnostic messages from libclang. maybe it's telling us something. maybe we need ` std=c++11` cf. https://stackoverflow.com/questions/37098725/parsing-with-libclang-unable-to-parse-certain-tokens-python-in-windows.
 -- it was #includes, experimented some

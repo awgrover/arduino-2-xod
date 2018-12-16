@@ -63,12 +63,16 @@ def get_text(node):
             text = " ".join(x.spelling for x in node.get_tokens())
     # we can get more info about the node.type
     canon_type = str(node.type.get_canonical().kind) + ":" + str(node.type.get_canonical().get_size())
+
+    fields = '{{ node => "{}", actual_type => "{}", type => "{}", type_name => "{}", text => "{}", access => "{}", static => {}, line => {}, '
+    values = [ kind, node.type.kind, canon_type, node.result_type.spelling, text, node.access_specifier.name, 1 if node.is_static_method() else 0, node.location.line ]
+
     if kind == 'CXX_METHOD':
         #print("Method:",text, node.access_specifier.name)
         canonical_return = str(node.result_type.get_canonical().kind) + ":" + str(node.result_type.get_canonical().get_size())
-        return '{{ node => "{}", actual_type => "{}", type => "{}", type_name => "{}", text => "{}", return_actual_type => "{}", return_type => "{}", access => "{}", line => {}, '.format(kind, node.type.kind, canon_type, node.result_type.spelling, text, node.result_type.kind, canonical_return, node.access_specifier.name, node.location.line)
-    else:
-        return '{{ node => "{}", actual_type => "{}", type => "{}", type_name=>"{}", text => "{}", access => "{}", '.format(kind, node.type.kind, canon_type, node.type.spelling, text, node.access_specifier.name)
+        fields += 'return_actual_type => "{}", return_type => "{}", '
+        values.extend( [node.result_type.kind, canonical_return] )
+    return fields.format(*values)
 
 if len(sys.argv) != 2:
     print("Usage: dump_ast.py [header file name]")
