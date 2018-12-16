@@ -441,7 +441,7 @@ sub definitions {
   $defn{'xod'}->{'cons_patch_name'} =~ s/_/-/g; # xod wants -
   if ($BUG{'type_name_dash'} ) { $defn{'xod'}->{'cons_patch_name'} =~ s/-//g; }; # remove -
   
-  my $type_base = $libname || '@'; # lib || project
+  my $type_base = '@'; # lib || project
   $defn{'xod'}->{'input_type_name'} = $type_base . "/input-" . $defn{'xod'}->{'cons_patch_name'}; # WAS type_name_input
   $defn{'xod'}->{'output_type_name'} = $type_base . "/output-" . $defn{'xod'}->{'cons_patch_name'}; # WAS type_name_input
   
@@ -768,7 +768,7 @@ sub write_patch {
   say "make patch $fname ...";
   system('mkdir','-p', dirname($fname) ) and die;
   my $xh = IO::File->new( $fname, 'w' ) or die($!);
-  print $xh JSON->new->pretty->encode($xodp);
+  print $xh JSON->new->pretty->canonical->encode($xodp);
   $xh->close;
   }
 
@@ -1008,6 +1008,7 @@ sub _do_library {
         name => $defn{'xod'}->{'cons_patch_name'},
         description => join("\n",@description),
         version => ($gSwitches->{'version'} || '1.0.0'),
+        license => config()->{'license'} || 'GPLv3',
         );
 
     # FIXME: replace keys rather than overwriting all keys
