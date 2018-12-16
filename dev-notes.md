@@ -236,9 +236,9 @@ To make this usable by a normal person, there should be some automation for gett
 
 - [x] put examples in right place in lib/github
 
-- [ ] statics
--- [ ] skip
--- [ ] add back in properly
+- [x] statics
+-- [x] skip
+-- [o] add back in properly: clang doesn't report args
 
 - [ ] clean up $xoddir & examples
 
@@ -264,6 +264,7 @@ clang cindex ast issues for .h files
 [ ] skips some methods for no apparent reason: ex XXX
 [ ] skips arguments if not named in the signature declaration: e.g. void fubar(int);` Haven't checked the .cpp
 [ ] documentation. inlinedocs (~javadoc) style would be nice to extract and use.
+[ ] static methods don't give args
 
 - [ ] ask about properties
 

@@ -20,5 +20,6 @@ void evaluate(Context ctx) {
   
   emitValue<output_dev>(ctx, object); // for chaining
 
+  
   emitValue<output_done>(ctx, 1); // pulse
 }

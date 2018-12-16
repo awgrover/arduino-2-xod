@@ -108,6 +108,56 @@ void evaluate(Context ctx) {
   
   emitValue<output_dev>(ctx, object); // for chaining
 
+  {% if ($method{'type'} ne 'void') {
+    'emitValue<output_val>(ctx, rez); // '.  $method{'type'};
+    }
+  else { 
+    '';
+    }
+  %}
+  emitValue<output_done>(ctx, 1); // pulse
+}
+EOS
+
+my $cpp_static_method = <<'EOS';
+//-- {% $method{'type'} %} {% $arduino{'class_name'} %}::{% $method{'name'} %}({% our @args = map {$_->{'name'}} @{$method{'arguments'} }; join(", ", @args); %})
+// Our constructor namespace should be: {% $cpp{'cons_namespace'} %}
+struct State {
+  // not used
+  };
+
+{{ GENERATED_CODE }}
+
+void evaluate(Context ctx) {
+
+  {% 
+  if (@{$method{'arguments'}}) {
+    $OUT .= "if (\n    ";
+
+    our @dirty;
+    push @dirty, "!isInputDirty<input_".$xod{'cons_patch_name'}.">(ctx)";
+    foreach my $arg ( @$args ) {
+      push @dirty, "!isInputDirty<input_".$arg->{'name'}.">(ctx)";
+    } 
+    $OUT .= join " &&\n    ",@dirty;
+    $OUT .= "\n  ) return;";
+    }
+  else { '// no inputs' }
+  %}
+
+  // var names are valid c++ because we got them from the arglist of the c++ method
+  {% 
+  foreach my $arg ( @{$method{'arguments'} } ) {
+    $OUT .= "auto ".$arg->{'name'}." = getValue<input_".$arg->{'name'}.">(ctx); // ".$arg->{'type_name'} ."\n  ";
+  } 
+  %}
+
+  {% ($method{'type'} ne 'void') ? 'auto rez = ' : '' %}{% $arduino{'class_name'} %}::{% $method{'name'} %}( {% join(", ", @args) %} ); // {%
+    $method{'type'} ne 'void' 
+    ? $method{'type'} 
+    : 'void'
+  %}
+  
   emitValue<output_{% $method{'type'} ne 'void' ? 'val' : 'done' %}>(ctx, {% $method{'type'} ne 'void' ? 'rez' : 1 %}); // {% 
     $method{'type'} ne 'void' 
     ? $method{'type'} 
@@ -166,6 +216,7 @@ sub do_make {
   }
   do_constructor();
   do_methods();
+  do_static_methods();
   #do_properties(); # skip them
   do_specialize();
   }
@@ -349,7 +400,7 @@ sub do_properties {
       },
 
     # ast preds
-    [ p_node_type('FIELD_DECL'), p_access('PROTECTED') ],
+    [ p_node_type('FIELD_DECL'), p_access('PUBLIC') ],
     );
   }
 
@@ -447,7 +498,7 @@ sub make_patches {
     $this_method_name .= $method_counts{$this_method_name} if $method_counts{$this_method_name};
 
     #say "patch ($what) name: $this_method_name";
-    #say "  #args ",Dumper($args);
+    say "  #args ",Dumper($args);
 
     my %xodp; # the .xodp structure for a constructor patch
 
@@ -490,6 +541,78 @@ sub make_patches {
     });
   say "Made ",$made_ct," $what patches";
   $made_ct;
+  }
+
+sub do_static_methods {
+  # Make public static methods patches
+  # --- $ardlib $xodproject
+
+  my ($ard,$xod) = @ARGV;
+  
+  my $made_ct = make_patches(
+    'static method',
+    $ard, $xod,
+    $cpp_static_method,
+
+    # description
+    sub { my ($defn, $method_node, $args, $ct) = @_; # unused
+        ''; # can we do better? comments? doc? line-number?
+      },
+
+    # %xodp
+    sub { 
+      my ($defn, $xodp, $method, $args, $ct) = @_;
+
+      # each "row" of a patch
+
+      # inputs
+      add_nodes($xodp, 
+
+        # the args
+        @$args,
+        );
+
+      # cpp
+      add_nodes($xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
+
+      # output node(s)
+      my $outtype = $cpp2xod_type{ $method->{'type'} };
+      $outtype =~ s/\/input-/\/output-/; # 'input' -> 'output'
+      if (!$outtype) {
+        warn Dumper($method);
+        die "Don't know type for return-type of method ".$method->{'type'}." ".$method->{'name'}."(...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
+        }
+
+      my @rez_nodes;
+
+      if ($method->{'type'} eq 'TypeKind.VOID:-2') {
+        push @rez_nodes, [ done => "xod/patch-nodes/output-pulse" ]; # pulse on finish
+        }
+      else {
+        push @rez_nodes, [ val => $outtype ];
+        }
+
+      add_nodes($xodp, @rez_nodes );
+      },
+
+    # template-data
+    sub {
+      my ($defn, $method, $args) = @_;
+      die "Need github_url from --gihub_url option, or from arduino library.properties['url']" if !$defn->{'arduino'}->{'github_url'};
+
+      return { method => {
+        name => $method->{'name'},
+        type => ($method->{'type'} eq 'TypeKind.VOID:-2' ? 'void' : $method->{'type_name'}),
+        arguments => [
+          map { { name => $_->[0], type => $_->[1], type_name => $_->[2] } } @$args # FIXME: use actual type
+          ],
+        }}
+      },
+ 
+    # ast_predicates
+    [ \&p_toplevel, p_node_type('CXX_METHOD'), p_access('PUBLIC'), \&p_static ]
+    );
+
   }
 
 sub do_methods {
@@ -541,12 +664,11 @@ sub do_methods {
       my @rez_nodes;
       push @rez_nodes, [ dev => $defn->{'xod'}->{'output_type_name'}];
 
-      if ($method->{'type'} eq 'TypeKind.VOID:-2') {
-        push @rez_nodes, [ done => "xod/patch-nodes/output-pulse" ]; # pulse on finish
+      if ($method->{'type'} ne 'TypeKind.VOID:-2') {
+        push @rez_nodes, [ val => $outtype ];
         }
-      else {
-        push @rez_nodes, [ val => $outtype ]; # pulse on finish
-        }
+
+      push @rez_nodes, [ done => "xod/patch-nodes/output-pulse" ]; # pulse on finish
 
       add_nodes($xodp, @rez_nodes );
       },
@@ -566,7 +688,7 @@ sub do_methods {
       },
  
     # ast_predicates
-    [ \&p_toplevel, p_node_type('CXX_METHOD'), p_access('PUBLIC') ]
+    [ \&p_toplevel, p_node_type('CXX_METHOD'), p_access('PUBLIC'), \&p_instance ]
     );
 
   }
@@ -730,6 +852,18 @@ sub p_toplevel {
   # if node is toplevel
   my ($depth, $node) =@_;
   $depth == 0;
+  }
+
+sub p_static {
+  # static
+  my ($depth, $node) =@_;
+  $node->{'static'};
+  }
+
+sub p_instance {
+  # not static
+  my ($depth, $node) =@_;
+  ! $node->{'static'};
   }
 
 sub p_access {
@@ -988,6 +1122,12 @@ my %commands = (
         ],
     methods => [ 
         ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public method nodes',
+        '--only:s' => 'only make this exact method name',
+        '--limit:n' => 'only make this many methods',
+        'help|h|H'=>'this',
+        ],
+    static_methods => [ 
+        ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public static method nodes',
         '--only:s' => 'only make this exact method name',
         '--limit:n' => 'only make this many methods',
         'help|h|H'=>'this',

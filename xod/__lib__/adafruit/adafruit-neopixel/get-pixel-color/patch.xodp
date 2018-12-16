@@ -2,28 +2,28 @@
    "description" : "",
    "nodes" : [
       {
-         "label" : "adafruitneopixel",
-         "id" : "i-adafruitneopixel",
-         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
          "position" : {
             "x" : 68,
             "y" : 102
-         }
+         },
+         "type" : "adafruit/adafruit-neopixel/input-adafruitneopixel",
+         "label" : "adafruitneopixel",
+         "id" : "i-adafruitneopixel"
       },
       {
-         "position" : {
-            "y" : 102,
-            "x" : 136
-         },
          "type" : "xod/patch-nodes/input-pulse",
-         "id" : "i-trigger",
-         "label" : "trigger"
+         "position" : {
+            "x" : 136,
+            "y" : 102
+         },
+         "label" : "trigger",
+         "id" : "i-trigger"
       },
       {
          "type" : "xod/patch-nodes/not-implemented-in-xod",
          "position" : {
-            "x" : 68,
-            "y" : 204
+            "y" : 204,
+            "x" : 68
          },
          "id" : "cpp"
       },
@@ -37,13 +37,22 @@
          "label" : "dev"
       },
       {
-         "label" : "val",
+         "type" : "xod/patch-nodes/output-number",
          "position" : {
             "y" : 306,
             "x" : 136
          },
-         "type" : "xod/patch-nodes/output-number",
+         "label" : "val",
          "id" : "o-val"
+      },
+      {
+         "position" : {
+            "x" : 204,
+            "y" : 306
+         },
+         "type" : "xod/patch-nodes/output-pulse",
+         "id" : "o-done",
+         "label" : "done"
       }
    ]
 }

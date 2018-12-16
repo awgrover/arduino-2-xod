@@ -12,10 +12,10 @@ void evaluate(Context ctx) {
   if ( !isInputDirty<input_trigger>(ctx) ) return;
 
   // var names are valid c++ because we got them from the arglist of the c++ method
-  auto n = getValue<input_n>(ctx); // int
-  auto r = getValue<input_r>(ctx); // int
-  auto g = getValue<input_g>(ctx); // int
-  auto b = getValue<input_b>(ctx); // int
+  auto n = getValue<input_n>(ctx); // 
+  auto r = getValue<input_r>(ctx); // 
+  auto g = getValue<input_g>(ctx); // 
+  auto b = getValue<input_b>(ctx); // 
   
 
   auto object  = getValue<input_adafruitneopixel>(ctx); // Adafruit_NeoPixel
@@ -24,5 +24,6 @@ void evaluate(Context ctx) {
   
   emitValue<output_dev>(ctx, object); // for chaining
 
+  
   emitValue<output_done>(ctx, 1); // pulse
 }
