@@ -1005,7 +1005,7 @@ sub _do_library {
 
     my %xod_project = (
         authors => \@authors,
-        name => $defn{'xod'}->{'cons_patch_name'},
+        name => $defn{'xod'}->{'libname'},
         description => join("\n",@description),
         version => ($gSwitches->{'version'} || '1.0.0'),
         license => config()->{'license'} || 'GPLv3',

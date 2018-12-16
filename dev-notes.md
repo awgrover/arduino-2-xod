@@ -254,8 +254,8 @@ To make this usable by a normal person, there should be some automation for gett
     and as readme patch as comment
 -- [x] print description for publishing
 -- [x] change author: read forum
--- [ ] ln as project, publish
--- [ ] ln awgrover/conversions, publish
+-- [x] ln as project, publish
+-- [x] ln awgrover/conversions, publish
 
 - [ ] try: https://forum.xod.io/t/trial-arduino-xod-converter-for-libraries/1484/2
 
