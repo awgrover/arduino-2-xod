@@ -209,7 +209,7 @@ EOS
 
 sub do_make {
   # --- ardlibdir
-  $xoddir = do_library();
+  $xoddir = _do_library($ARGV[0]);
   push @ARGV, $xoddir;
   do_constructor();
   do_methods();
@@ -531,9 +531,10 @@ sub make_patches {
 
 sub do_static_methods {
   # Make public static methods patches
-  # --- $ardlib $xodproject
+  # --- $ardlib
 
-  my ($ard,$xod) = @ARGV;
+  my ($ard) = @ARGV;
+  my $xod = xod_lib_dir($ard);
   
   my $made_ct = make_patches(
     'static method',
@@ -603,9 +604,10 @@ sub do_static_methods {
 
 sub do_methods {
   # Make public methods patches
-  # --- $ardlib $xodproject
+  # --- $ardlib
 
-  my ($ard,$xod) = @ARGV;
+  my ($ard) = @ARGV;
+  my $xod = xod_lib_dir($ard);
   
   my $made_ct = make_patches(
     'method',
@@ -681,9 +683,10 @@ sub do_methods {
 
 sub do_constructor {
   # Make a constructor patch
-  # --- $ardlib $xodproject
+  # --- $ardlib
 
-  my ($ard,$xod) = @ARGV;
+  my ($ard) = @ARGV;
+  my $xod = xod_lib_dir($ard);
   
   my $made_ct = make_patches(
     'constructor',
@@ -945,7 +948,7 @@ sub xod_lib_dir {
     $lib_name =~ s/[_ ]/-/g;
     $lib_name =~ s/[^0-9a-z\/-]//g;
   $lib_dir .= "/" . $lib_name;
-  $lib_dir .= '-LL';
+  $lib_dir .= '-ll';
   $lib_dir;
   }
 
@@ -1013,26 +1016,47 @@ sub _do_library {
 
     say join("\n",@description);
     say "wrote $subdir/project.xod";
+
+
+    my %xodp = (
+      comments => [
+        {
+        content => join("\n",@description),
+        id => 'readme',
+        position => { x=>0, y=>0 },
+        size => { height=>255,width=>510 },
+        },
+        ]
+      );
+    write_patch( "$subdir/readme/patch.xodp", \%xodp);
+
+    # link as project
+    my $project_name = basename($defn{'xod'}->{'libname'});
+    my @cmd = ('ln','-s', basename($xoddir)."/".$defn{'xod'}->{'libname'}, "$xoddir/../$project_name");
+    unshift @cmd, 'echo' if $gSwitches->{'dryrun'};
+    system(@cmd) and die($!);
+    say "linked project $project_name to that lib";
     
     $subdir;
     }
 
 sub do_specialize {
   # gate, if, and so on
-  # --- $ardlib $xodproject
+  # --- $ardlib
 
-  my ($ard,$xod) = @ARGV;
+  my ($ard) = @ARGV;
+  my $xod = xod_lib_dir($ard);
 
   my ($ast, %defn) = definitions( $ard, $xod );
 
   my $xod_builtin_lib = '/usr/lib/node_modules/xod-cli/__lib__';
 
   my @abstract_xodp_file = split "\n", `rgrep -l xod/patch-nodes/abstract $xod_builtin_lib --include '*.xodp'`;
-  say "abs ",join(", ",@abstract_xodp_file);
+  #say "abs ",join(", ",@abstract_xodp_file);
 
   foreach my $an_abstract_xodp_file (@abstract_xodp_file) {
     my $patch_name = basename(dirname($an_abstract_xodp_file));
-    say "Abstract patch $patch_name";
+    #say "Abstract patch $patch_name";
 
     my $this_patch_name = "$patch_name(".$defn{'cpp'}->{'cons_patch_name'}.")";
 
@@ -1049,11 +1073,11 @@ sub do_specialize {
 sub specialize_cpp {
   my ($xod, $xod_builtin_lib, $defn, $patch_name, $this_patch_name, $xodp, $an_abstract_xodp_file) = @_;
   my $extant_specialized_name = "$patch_name(number)/patch.cpp";
-  say "From $extant_specialized_name ..";
+  #say "From $extant_specialized_name ..";
   my $extant_specialized_file = `find $xod_builtin_lib -path '*/$extant_specialized_name'`;
   chomp $extant_specialized_file;
   if (!$extant_specialized_file) {
-    warn "Can't find an exemplar for '$patch_name', like '*/$extant_specialized_name'\n";
+    warn "Warning: Can't find an exemplar for '$patch_name', like '*/$extant_specialized_name'\n";
     return 0;
     }
 
@@ -1070,7 +1094,7 @@ sub specialize_xodp {
   # by copying existing ones
 
   my $xodp = decode_json( `cat $an_abstract_xodp_file` );
-  say "json: ",Dumper($xodp);
+  #say "json: ",Dumper($xodp);
 
   # for un-labeled inputs, if only 1, then "IN", if more, then "IN1"..
   # so, we may have to fixup the first
@@ -1116,19 +1140,19 @@ sub specialize_xodp {
           }
         }
       }
-      say "  ".$node->{'label'}." => ".$node->{'type'};
+      #say "  ".$node->{'label'}." => ".$node->{'type'};
     }
   # fixup firsts
   if ($inct > 2) {
     $firstin->{'label'} .= '1';
-    say "  FIXUP in to ",$firstin->{'label'};
+    #say "  FIXUP in to ",$firstin->{'label'};
     }
   if ($outct > 2) {
     $firstout->{'label'} .= '1';
-    say "  FIXUP out to ",$firstout->{'label'};
+    #say "  FIXUP out to ",$firstout->{'label'};
     }
   
-  say "Abstract patch $this_patch_name";
+  #say "Abstract patch $this_patch_name";
   write_patch( "$xod/$this_patch_name/patch.xodp", $xodp);
   return $xodp;
   }

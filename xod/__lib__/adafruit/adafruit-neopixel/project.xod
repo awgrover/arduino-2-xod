@@ -1,9 +1,0 @@
-{
-   "description" : "Arduino library for controlling single-wire-based LED pixels and strip.\nArduino library for controlling single-wire-based LED pixels and strip.",
-   "name" : "Adafruit NeoPixel",
-   "version" : "1.1.7",
-   "authors" : [
-      "Adafruit",
-      "Adafruit <info@adafruit.com>"
-   ]
-}

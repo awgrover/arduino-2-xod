@@ -242,7 +242,7 @@ To make this usable by a normal person, there should be some automation for gett
 
 - [x] clean up $xoddir & examples
 
-- [ ] publish as my lib
+- [x] publish as my lib
 -- [x] class name as lib name
     project description:
         $classname
@@ -253,9 +253,7 @@ To make this usable by a normal person, there should be some automation for gett
         $paragraph don't include if identical
     and as readme patch as comment
 -- [x] print description for publishing
--- [ ] versioning
-    test 0.0.0-$ard.$vers.$n
--- [ ] change author: read forum
+-- [x] change author: read forum
 
 - [ ] try: https://forum.xod.io/t/trial-arduino-xod-converter-for-libraries/1484/2
 

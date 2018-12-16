@@ -12,13 +12,17 @@ Also, if the XOD library were parallel to the Arduino library, then existing tut
 
 My vision is to see this installed in XOD itself, or in the XOD website. We could build up the libraries quite quickly. As they are auto-converted, we should request refinement/repair/wrapping on the XOD forum!
 
-I chose Adafruit's [NeoPixel V1.1.7](https://github.com/adafruit/Adafruit_NeoPixel) library to try.
+I chose Adafruit's [NeoPixel V1.1.7](https://github.com/adafruit/Adafruit_NeoPixel) library to try. The generated library is at [in my xod libs on github](https://github.com/awgrover/xod_lib/tree/master/lib/awgrover/adafruit-neopixel-ll), and published in the usual [xod-libs](https://xod.io/libs/awgrover/adafruit-neopixel-ll/).
 
 # Playing With The Auto-converted Neopixel Library
 
-I did not upload it, because it likely has many issues. Also, not really ready for beginners! But you could still try.
+It is [published](https://xod.io/libs/awgrover/adafruit-neopixel-ll/), so the usual `Add Library...` should work.
 
-The library has the philosophy that you "thread" the patches together with the "object" (the output of the constructor), to get patches to fire in the right order. I think the XOD team prefers a different philosophy (this is another post for discussion!). Anyway, this prototype works like that.
+This is a prototype, low-level, mechanical conversion. It may not be completely in the spirit of XOD. There are some discussions on the (XOD Forum](https://forum.xod.io/) about many aspects bearing on this conversion.
+
+This conversion is known to have some broken bits: several methods were skipped, arguments in some methods were skipped, etc. 
+
+The library has the philosophy that you "thread" the patches together with a pulse, to get patches to fire in the right order.
 
 * Manually install the library from [github](https://github.com/awgrover/arduino-2-xod). Back to the stone age:
   * Download the zip (from "download or clone")
