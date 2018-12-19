@@ -31,7 +31,7 @@ How would you handle "asynch" actions?
 `./ard2xod library /home/awgrover/Arduino/libraries/Adafruit_NeoPixel`
 
 
-- [ ] Deduce license?
+- [ ] Deduce license? look in the github for LICENSE or COPYING...
 - [ ] version doesn't show in XOD
 -- make a readme patch
 
@@ -120,11 +120,6 @@ File `Adafruit_NeoPixel.h`
         Adafruit_NeoPixel(void);
         ...
         }
-
-Patch Adafruit_NeoPixel
-
-CODE HERE annotate as a template
-
 
 ## Methods/Accessors: Actions and Values
 
@@ -320,32 +315,32 @@ ERROR. The error has no formatter. Report the issue to XOD developers.
 Nothing relevant in dev tools. maybe a Error: ENOENT: no such file or directory, open '/opt/XOD IDE/resources/app-update.yml'
 ----
 [ ] usage of prototype
-[ ] example: RGB detector
+[x] example: RGB detector
 
 [x] naming/uploading
 -- easy to find == same author/name as arduino library. but conflicts with uploading privileges. an individual should be allowed to work on auto-converting I think? suggestion: XOD website feature: auto-convert, goes into libraries under probation. a xoder can test/improve. what to do with improvements/wrappers? Upload as normal user library with some flag: "improves/fixes/wraps arduino lib", and somehow gets put with the auto-converted one.
 -- implies a "rating" of a library: probation, limited testing, has (comprehensive) examples, used-a-lot, and even quality ratings. Use github info (e.g. bugs)?
 -- adding examples is similar: (re)construct the examples and include with the auto-converted library
 -- but, mark as low-level/rough. adafruit/adafruit-neopixel-lowlevel ?
-[ ] how to do versions? There's the source version, and the conversion/fix version. ubuntu runs them together upstream-ubuntu.
+[x] how to do versions? There's the source version, and the conversion/fix version. ubuntu runs them together upstream-ubuntu.
 
 constructors
-[ ] you seem to want "neopixel-device" for constructors. I find that hard to pick out in the list of patches in a library. Some sorting to the top for "constructors" would be nice.
+[x] you seem to want "neopixel-device" for constructors. I find that hard to pick out in the list of patches in a library. Some sorting to the top for "constructors" would be nice.
 
 Philosophy of XOD
-[ ] the main way I see of doing things is to thread the object through the patch(methods). This enforces sequence. Using the abstract `gate`, I can also control when a patch fires (and then can use a bus-node for the object). That makes sense to me for simple patches, like `begin`.
+[x] the main way I see of doing things is to thread the object through the patch(methods). This enforces sequence. Using the abstract `gate`, I can also control when a patch fires (and then can use a bus-node for the object). That makes sense to me for simple patches, like `begin`.
 -- you've thought a lot more about how to program in XOD, and I don't think in XOD as well.
 -- you seem to treat the object as not-dirty-relevant, and use a trigger input to thread things. it is more tedious to wire up...
 -- How should a more interesting patch, like `set-pixel-color` work? Should it "fire" when the object is dirty? When any of the rgb is dirty? When anything is dirty? Should it not consider the object for is-dirty? I get confused thinking about it. What are patterns that work?
 -- Should simple "verb" patches ignore the object is-dirty? And thus have a "trigger"? It's seems easy to thread stuff together with the object, and not have to generate a trigger pulse all the time. E.g. `clear`.
 -- how do you "gang" several inputs? e.g. a `set-pixel-color` should wait for all of the `rgb` to be changed, not just a `r` updated. trigger is one way, but that seems tedious if you want to update just `r`. It's like one way is "gate this arg list", and another is "fire on any updated". what is best practice here?
 -- I output a "done" pulse. should be "did" for a pulse. But, should it be a pulse or boolean? E.g. after set-pixel-color, do show. so thread them somehow.
-[ ] doing the "simple" example, I discovered that the threading is probably better done by pulses. Then "select" is usable. However, then "gate" is not. Will have to see how things go.
-[ ] impedence mismatch: pots 0..1, rgb 255
-[ ] bridging pure/impure world: data to pulse
+[x] doing the "simple" example, I discovered that the threading is probably better done by pulses. Then "select" is usable. However, then "gate" is not. Will have to see how things go.
+[x] impedence mismatch: pots 0..1, rgb 255
+[x] bridging pure/impure world: data to pulse
 
 enums
-[ ] need them! not clear how to do the right thing auto-converting. neopixel is NOT enums, but a bunch of #defines. sigh.
+[x] need them! not clear how to do the right thing auto-converting. neopixel is NOT enums, but a bunch of #defines. sigh.
 -- does this imply some kind of per-ard-lib rules for subsequent conversions? Or options? like `./ard2xod --defines2enums pixel-order='NEO_[RGB]*'` that adds stuff after main autoconvert step? as part of the web-interface would be cool.
 
 Abstract
@@ -354,7 +349,7 @@ Abstract
 Tools
 [ ] can I ask xod for the $xoddir, $xodlibdir?
 
-[ ] how to reference the original library, especially it's readme, and links to tutorials.
-[ ] examples need to be manually (re)constructed.
+[x] how to reference the original library, especially it's readme, and links to tutorials.
+[x] examples need to be manually (re)constructed.
 
 

@@ -13,6 +13,7 @@ use lib 'bin';
 use awgrover::Getopt;
 
 my $gSwitches;
+my @warnings; # accumulate warnings for readme
 
 # BUG flags, turn off when fixed
 our %BUG;
@@ -33,9 +34,10 @@ my %cpp2xod_type = (
   'TypeKind.INT:2' => 'xod/patch-nodes/input-number',
   'TypeKind.INT:1' => 'xod/patch-nodes/input-number',
   'TypeKind.BOOL:1' => 'xod/patch-nodes/input-boolean',
-  'TypeKind.POINTER:8' => 'xod/patch-nodes/input-number', # pointers are bits # FIXME: this is actually a pointer to something
+  #'TypeKind.POINTER:8' => 'xod/patch-nodes/input-number', # pointers are bits # FIXME: this is actually a pointer to something
   'TypeKind.VOID:-2' => 'void', # special
   bool => 'xod/patch-nodes/input-boolean',
+  # LVALUEREFERENCE is handled by xxx IFF the type is this class
   );
 
 # A .cpp for constructors looks like this:
@@ -209,13 +211,35 @@ EOS
 
 sub do_make {
   # --- ardlibdir
-  $xoddir = _do_library($ARGV[0]);
-  push @ARGV, $xoddir;
+  my ($ard) = @ARGV;
+  say "# Start library for $ard";
+  my $xod = _do_library($ARGV[0]);
+  say "# Constructors for $ard, @ $xod";
   do_constructor();
+  say "# Methods for $ard, @ $xod";
   do_methods();
+  say "# Static Methods for $ard, @ $xod";
   do_static_methods();
   #do_properties(); # skip them
+  say "# Specializers $ard, @ $xod";
   do_specialize();
+
+  add_warnings($ard);
+  say "# Made $xod";
+  }
+
+sub add_warnings {
+  # update readme patch
+  my ($ard) = @_;
+  my $xod = xod_lib_dir($ard);
+
+  # my $defn = definitions($ard);
+  my $xodp = decode_json( `cat $xod/readme/patch.xodp` );
+
+  $xodp->{'comments'}->[0]->{'content'} .= "\n\nWarnings:\n* ".join("\n* ",@warnings);
+
+  write_patch("$xod/readme/patch.xodp", $xodp);
+
   }
 
 sub ard_dot_h {
@@ -287,9 +311,10 @@ sub cpp_safe_token {
   }
 
 sub foreach_method {
-  my ($methods_ast, $block) = @_;
+  my ($defn, $methods_ast, $block) = @_;
   my $ct = 0;
   say "Count of nodes: ".@$methods_ast;
+  METHOD:
   foreach my $method (@$methods_ast) {
     my $args_ast = find_all(0, $method, \&p_toplevel, p_node_type('PARM_DECL'));
     #say "  parms ",dump_shallow($_) foreach @$args_ast;
@@ -303,15 +328,25 @@ sub foreach_method {
 
       my $full_type = $parm->{'type'}; # unparsed, sad. "int *", "bool ()"
       push @saw, "$full_type $input_name";
-      my ($base_type, @more_type_pieces) = split(" ",$full_type);
 
-      my $cpp_type = $cpp2xod_type{$base_type};
-      if (!$cpp_type) {
-        my $sofar = join ", ", @saw;
-        die "Don't know type for argument in method ".$method->{'text'}."($sofar,...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
+      my $xod_type = to_xod_type($defn, \@saw, $parm); # can throw "Don't know cpp type:..."
+      if ( ! $xod_type ) {
+        push @warnings, "Skipped ".$method->{'text'}." (line ".$method->{'line'}.") because we don't know the parameter type";
+        say "# ",$warnings[-1];
+        next METHOD;
         }
+
       my $type_name = $parm->{'type_name'};
-      push @inputs, [ $input_name, $cpp_type, $type_name ];
+      push @inputs, [ $input_name, $xod_type, $type_name ];
+      }
+
+    # check output type
+    if ( ! $method->{'node'} eq 'CONSTRUCTOR' ) {
+      my $outtype = to_xod_type($defn, [], $method );
+      if ( ! $outtype ) {
+        say "# Skipped ".$method->{'text'}." (line ".$method->{'line'}.") because we don't know the output type";
+        next;
+        }
       }
 
     #say "Inputs: ",Dumper(\@inputs);
@@ -321,6 +356,33 @@ sub foreach_method {
     $ct += 1;
     }
   $ct;
+  }
+
+sub to_xod_type {
+  my ($defn, $saw, $parm) = @_;
+  my $full_type = $parm->{'type'};
+  my ($base_type, @more_type_pieces) = split(" ",$full_type);
+
+  my $xod_type;
+  if ( ($base_type eq 'TypeKind.LVALUEREFERENCE:1') && $parm->{'type_name'} eq ($defn->{'arduino'}->{'class_name'} . ' &') ) {
+    # $Class &
+    #say "REF";
+    $xod_type = $defn->{'xod'}->{'cons_patch_name'};
+    }
+  else {
+    $xod_type = $cpp2xod_type{$base_type};
+    }
+
+  if (!$xod_type) {
+    {
+    local $Data::Dumper::Maxdepth=1;
+    say Dumper($parm);
+    }
+    my $sofar = join ", ", @$saw;
+    say "Don't know type for argument in method ".$parm->{'text'}."($sofar,...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
+    return undef;
+    }
+  $xod_type;
   }
 
 sub do_ast {
@@ -355,11 +417,8 @@ sub do_properties {
       my ($defn, $xodp, $property, $args, $ct) = @_;
 
       # each "row" of a patch
-      my $xod_input_type = $cpp2xod_type{ $property->{'type'} };
-      if (!$xod_input_type) {
-        warn Dumper($property,);
-        die "Don't know type for type of property ".$property->{'type'}." ".$property->{'name'}."(...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
-        }
+      my $xod_input_type = to_xod_type($defn, [], $property);
+
       add_nodes($xodp, 
         [ $defn->{'cpp'}->{'cons_patch_name'} => $defn->{'xod'}->{'input_type_name'} ],
         [ val => $xod_input_type ]
@@ -393,6 +452,11 @@ sub definitions {
   # common values we need from $ard/$xod stuff
   # returns $ast (for first class), $defn
   my ($ard, $xod, $xod_is_new) = @_;
+  state %cache;
+
+  if ($cache{$ard}) {
+    return ( $cache{$ard}->[0], %{ $cache{$ard}->[1]} );
+    }
 
   my $libname;
   if ($xod =~ /\/__lib__\//) {
@@ -403,7 +467,7 @@ sub definitions {
     }
 
   if (!$xod_is_new && !-e "$xod/project.xod") {
-    say STDERR "# Expected a xod-project-dir with project.xod in $xod";
+    die "# Expected a xod-project-dir with project.xod in $xod";
     exit 1;
     }
 
@@ -454,6 +518,7 @@ sub definitions {
   $defn{'cpp'}->{'cons_namespace'} = cpp_safe_token( $defn{'cpp'}->{'cons_namespace'} );
   #say "## defn: ",Dumper(\%defn);
 
+  $cache{$ard} = [ $class_ast, \%defn ];
   return ($class_ast, %defn);
   }
 
@@ -470,13 +535,11 @@ sub make_patches {
   #print "found ${what}'s: ",dump_shallow($_),"\n" foreach @$methods_ast;
   if (!@$methods_ast) {
     warn "No ${what}'s";
-    die;
     return;
     }
 
-
   my %method_counts = ();
-  my $made_ct = foreach_method($methods_ast, sub {
+  my $made_ct = foreach_method(\%defn, $methods_ast, sub {
     my ($ct, $method, $args) = @_;
 
     # append ct if not first one
@@ -484,7 +547,7 @@ sub make_patches {
     $this_method_name .= $method_counts{$this_method_name} if $method_counts{$this_method_name};
 
     #say "patch ($what) name: $this_method_name";
-    say "  #args ",Dumper($args);
+    #say "  #args ",Dumper($args);
 
     my %xodp; # the .xodp structure for a constructor patch
 
@@ -563,7 +626,8 @@ sub do_static_methods {
       add_nodes($xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
 
       # output node(s)
-      my $outtype = $cpp2xod_type{ $method->{'type'} };
+      my $outtype = to_xod_type($defn, [], $method);
+
       $outtype =~ s/\/input-/\/output-/; # 'input' -> 'output'
       if (!$outtype) {
         warn Dumper($method);
@@ -623,6 +687,7 @@ sub do_methods {
     sub { 
       my ($defn, $xodp, $method, $args, $ct) = @_;
 
+      say "Method ", $method->{'name'}."(".(join ",", map{$_->[0]} @$args).")";
       # each "row" of a patch
 
       # inputs
@@ -642,7 +707,8 @@ sub do_methods {
       add_nodes($xodp, [0 => 'xod/patch-nodes/not-implemented-in-xod']);
 
       # output node(s)
-      my $outtype = $cpp2xod_type{ $method->{'type'} };
+      my $outtype = to_xod_type($defn, [], $method );
+
       $outtype =~ s/\/input-/\/output-/; # 'input' -> 'output'
       if (!$outtype) {
         warn Dumper($method);
@@ -708,6 +774,7 @@ sub do_constructor {
       my ($defn, $xodp, $constructor_ast, $args, $ct) = @_;
 
       $xodp->{'patch_name'} = $defn->{'xod'}->{'cons_patch_name'} . ($ct==0 ? '' : $ct);
+      say "Constructor: ", $xodp->{'patch_name'}."(".(join ",", map{$_->[0]} @$args).")";
 
       add_nodes($xodp, @$args);
 
@@ -760,12 +827,12 @@ sub write_patch_cpp {
   my $fh = IO::File->new( $fname, 'w') or die($!);
   print $fh $cpp;
   $fh->close;
-  say "Wrote $fname";
+  say "Make cpp $fname";
   }
 
 sub write_patch {
   my ( $fname, $xodp ) = @_;
-  say "make patch $fname ...";
+  say "Make patch $fname ...";
   system('mkdir','-p', dirname($fname) ) and die;
   my $xh = IO::File->new( $fname, 'w' ) or die($!);
   print $xh JSON->new->pretty->canonical->encode($xodp);
@@ -819,7 +886,7 @@ sub add_nodes {
     $node{'label'} = $name if $name; # some nodes have no name, e.g. not-implemented-in-xod
     $node{'type'} = $type;
     $node{'position'} = { x => $x, y => $row_y };
-    warn "# node ",$node{'label'}," [",$node{'id'},"] as ",$node{'type'};
+    # warn "# node ",$node{'label'}," [",$node{'id'},"] as ",$node{'type'};
 
     
     push @$nodes, \%node;
@@ -964,7 +1031,7 @@ sub _do_library {
     if (!$gSwitches->{'dryrun'}) {
       system('mkdir','-p', $subdir) and die;
       }
-    say "made $subdir";
+    say "# made $subdir";
 
     # project.xod
     my $username = $gSwitches->{'author'} || config()->{'xod'}->{'username'};
@@ -1015,8 +1082,10 @@ sub _do_library {
     my $ph = $gSwitches->{'dryrun'} ? *STDOUT : IO::File->new("$subdir/project.xod",'w') or die($!);
     print $ph JSON->new->pretty->encode(\%xod_project);
 
+    say "# Description:";
     say join("\n",@description);
-    say "wrote $subdir/project.xod";
+    say "";
+    say "# wrote $subdir/project.xod";
 
 
     my %xodp = (
@@ -1025,7 +1094,7 @@ sub _do_library {
         content => join("\n",@description),
         id => 'readme',
         position => { x=>0, y=>0 },
-        size => { height=>255,width=>510 },
+        size => { height=>555,width=>510 },
         },
         ]
       );
@@ -1033,7 +1102,8 @@ sub _do_library {
 
     # link as project
     my $project_name = basename($defn{'xod'}->{'libname'});
-    my @cmd = ('ln','-s', basename($xoddir)."/".$defn{'xod'}->{'libname'}, "$xoddir/../$project_name");
+    system('rm', dirname($xoddir)."/$project_name") if -e dirname($xoddir)."/$project_name";
+    my @cmd = ('ln','-s', $subdir, dirname($xoddir)."/$project_name");
     unshift @cmd, 'echo' if $gSwitches->{'dryrun'};
     system(@cmd) and die($!);
     say "linked project $project_name to that lib";
@@ -1065,7 +1135,7 @@ sub do_specialize {
     my $could = specialize_cpp($xod, $xod_builtin_lib, \%defn, $patch_name, $this_patch_name, $xodp, $an_abstract_xodp_file);
 
     if (!$could) {
-      say "Couldn't do .cpp, so remove so far";
+      say "  for $patch_name, couldn't do .cpp, so remove useless files";
       system('rm', '-rf', "$xod/$this_patch_name");
       }
     }
@@ -1175,6 +1245,28 @@ sub do_capture {
   say "# cp'd everything to xod/__lib__/$author/$libname";
   }
 
+sub do_github_fetch {
+  # givent the github like: https://github.com/prenticedavid/MCUFRIEND_kbv
+  # add https://github.com/prenticedavid/MCUFRIEND_kbv/archive/master.zip
+  # download, unzip
+
+  my ($url) = @ARGV;
+
+  # known .zip path
+  if ($url !~ /\/master\.zip$/) {
+    $url .= "/archive/master.zip";
+    }
+  
+  my $libname = basename( dirname( dirname( $url ) )); # eh, hackish
+  say "lib '$libname'";
+
+  # moderately safe quoting
+  say "Downloading $url, into tmp/$libname.zip";
+  system("mkdir -p tmp && cd tmp && curl -L '$url' > '$libname.zip' && unzip '$libname.zip' && mv '$libname-master' '$libname'") and die($!);
+  say "Downloaded unzipped into tmp/$libname";
+  }
+
+
 my %ConfigDesc = (
   xod => {
     username => 'xod account username for author',
@@ -1255,11 +1347,15 @@ my %commands = (
         'help|h|H'=>'this',
         ],
     capture => [
-      '' => '--- xod-proj-dir' # copy into xod-dir __lib__
+      '' => '--- xod-proj-dir # copy into xod-dir __lib__',
       ],
     # util
-    ast => [ # --- ardlibdir
-      '' => 'dump the ast',
+    'github-fetch' => [
+      '' => '--- github-url # makes assumptions and downloads the arduino lib from there',
+      'help|h|H'=>'this',
+      ],
+    ast => [ 
+      '' => '--- ardlibdir # dump the ast',
       'help|h|H'=>'this',
       ],
     unpack => [
@@ -1292,6 +1388,8 @@ sub main {
     $awgrover::Getopt::gUndefIfFail=1;
     $gSwitches = awgrover::Getopt::GetOptions( @$whichopts );
     exit(1) if !$gSwitches;
+
+    $command =~ s/-/_/g;
 
     no strict 'refs';
     &{"do_".$command}();
