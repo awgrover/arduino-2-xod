@@ -364,6 +364,8 @@ sub to_xod_type {
   my ($base_type, @more_type_pieces) = split(" ",$full_type);
 
   my $xod_type;
+
+  # for return, don't need it...
   if ( ($base_type eq 'TypeKind.LVALUEREFERENCE:1') && $parm->{'type_name'} eq ($defn->{'arduino'}->{'class_name'} . ' &') ) {
     # $Class &
     #say "REF";
@@ -716,9 +718,11 @@ sub do_methods {
         }
 
       my @rez_nodes;
+
       push @rez_nodes, [ dev => $defn->{'xod'}->{'output_type_name'}];
 
-      if ($method->{'type'} ne 'TypeKind.VOID:-2') {
+      # Skip if void
+      if ($method->{'type'} ne 'TypeKind.VOID:-2' ) {
         push @rez_nodes, [ val => $outtype ];
         }
 

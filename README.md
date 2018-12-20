@@ -135,3 +135,26 @@ This is a prototype: it just barely works. it is poorly tested. mortals are like
 
 So much to fix/change/figure out. Tracking it in the dev-nodes.md document.
 
+## Warnings
+
+I now generate a `readme` patch with info about versions, source library, etc.
+
+It also may have a list of warnings. If my code detects an issue, it should log a warning in the `readme` patch.
+
+* Skips methods if the argument's type can not be converted to xod world. RIght now, that's *everything* except ints, void, bool, and the class.
+
+## Duplicate 'this' emit
+
+If a method returns a reference to $this-class, I can't be sure it's not a clone, or new, or something, so I emit the return value as given. Which means there will be 2 outputs of this-class: 'dev' and 'val'. How can I tell it is "this", and not emit a duplicate?
+
+e.g.:
+
+```
+class PubSubClient {
+    ...
+    PubSubClient& setServer(uint8_t * ip, uint16_t port);
+    ...
+    }
+```
+
+You'll get a `set-server` patch
