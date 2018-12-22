@@ -10,6 +10,7 @@ import clang.cindex
 # useful to browse /usr/local/lib/python2.7/dist-packages/clang/cindex.py to figure out ast objects
 # e.g. node.result_type.text.__class__.__name__ == Type
 import inspect
+import json
 
 libclang='/usr/lib/llvm-3.8/lib/libclang.so.1'
 
@@ -46,6 +47,7 @@ def get_text(node):
         # nothing obvious gives the actual operator
         pass
     if 0 and not text:
+        # was testing if not text, maybe tokens
         print "get tokens: {} t:{} {}/ {} ...".format(kind, node.type, text, text.__class__.__name__)
         text = ""
         for x,token in enumerate(node.get_tokens()):
@@ -64,18 +66,26 @@ def get_text(node):
     # we can get more info about the node.type
     canon_type = str(node.type.get_canonical().kind) + ":" + str(node.type.get_canonical().get_size())
 
-    fields = '{{ node => "{}", actual_type => "{}", type => "{}", type_name => "{}", text => "{}", access => "{}", static => {}, line => {}, '
-    values = [ kind, node.type.kind, canon_type, node.result_type.spelling, text, node.access_specifier.name, 1 if node.is_static_method() else 0, node.location.line ]
+    elements = {
+        'node' : kind,
+        'actual_type' : node.type.kind.__str__(),
+        'type' : canon_type,
+        'type_name' : node.result_type.spelling, 
+        'text' : text, 
+        'access' : node.access_specifier.name,
+        'static' : 1 if node.is_static_method() else 0, 
+        'line' : node.location.line
+        }
 
     if kind == 'CXX_METHOD':
         #print("Method:",text, node.access_specifier.name)
         canonical_return = str(node.result_type.get_canonical().kind) + ":" + str(node.result_type.get_canonical().get_size())
-        fields += 'return_actual_type => "{}", return_type => "{}", '
-        values.extend( [node.result_type.kind, canonical_return] )
-    return fields.format(*values)
+        elements['return_actual_type'] = node.result_type.kind.__str__()
+        elements['return_type'] = canonical_return.__str__()
+    return '{ ' + ", ".join( ("\"{}\" : {}".format(x,json.dumps(y)) for x, y in elements.items()) )
 
 if len(sys.argv) != 2:
-    print("Usage: dump_ast.py [header file name]")
+    print >> sys.stderr, ("Usage: dump_ast.py [header file name]")
     sys.exit()
 
 clang.cindex.Config.set_library_file(libclang)
@@ -91,18 +101,20 @@ translation_unit = index.parse(sys.argv[1], ['-x', 'c++', '-std=c++11', '-D__COD
 def traverse(depth, cursor):
 
     pos = -1;
+    child_printed_ct = 0
     for node in enumerate(get_children(cursor)):
         # children is these are all clang.cindex.Cursor
         pos, children = node
         if pos==0:
-            print "children => ["
+            print (',' if depth !=0 else ''),'"children" : ['
 
         # descend if not-in-a-file (root stuff), or in file-of-interest
         if not children.location.file or children.location.file.name == sys.argv[1]:
 
             # don't describe nodes that aren't in a file
             if children.location.file:
-                print "  " * depth,get_text(children)
+                print "  " * depth, (',' if child_printed_ct > 0 else ''),get_text(children)
+                child_printed_ct += 1
 
             if depth > 30: # arbitrary limit
                 exit(1)
@@ -110,15 +122,15 @@ def traverse(depth, cursor):
             printed = traverse(depth+1, children)
 
             if printed >= 0:
-                print "  " * (depth+1),"]";
+                print "  " * (depth+1),']';
                 print "  " * depth,;
 
             if children.location.file:
-                print "},"
+                print '}'
     return pos
 
-print "{"
+print '{'
 traverse(0, translation_unit.cursor)
-print "]}"
+print ']}'
 for diag in translation_unit.diagnostics:
     print >> sys.stderr, 'DIAG ',diag
