@@ -157,4 +157,4 @@ class PubSubClient {
     }
 ```
 
-You'll get a `set-server` patch
+You'll get a `set-server` patch with outputs `dev` and `val`. The .cpp code indicates it *is* `this`, so redundant in this case.

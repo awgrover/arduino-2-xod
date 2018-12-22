@@ -23,8 +23,75 @@ my $XODRowSize = 102; # seems to be every 102 pixels
 my $XODColSize = 34; # seems to be
 
 # FIXME: hard code xod location
-my $xoddir = "/home/".$ENV{'USER'}."/xod/__lib__"; # can we ask xod?
-my $xodc = "/home/awgrover/dev/thirdparty/xod/xodc"; # installed xodc is broken, use built
+
+sub xod_projects {
+  # find the directory that contains the XOD projects
+  # FIXME: is it always true: $xod_projects/__lib__ is the xod libraries?
+  state $xod_projects;
+  return $xod_projects if $xod_projects;
+
+  $xod_projects = config()->{'path'}->{'xod_projects'};
+  return if $xod_projects;
+
+  # FIXME: xodc should tell us this
+  given ($^O) { # $OSNAME
+    when ('linux') {
+      # at least for ubuntu ~16.04:
+      $xod_projects = "/home/".$ENV{'USER'}."/xod";
+      }
+    default {
+      die "Sadly, this script doesn't know how to find the XOD projects directory on '$^O'\nSet .config path=>xod_projects=>'/some/thing' for now, and submit the solution to https://github.com/awgrover/arduino-2-xod/issues";
+      }
+    }
+
+  return $xod_projects;
+  }
+
+sub xod_libraries {
+  # find the directory that contains the XOD libraries
+  # FIXME: have config() do all of this, then we can query our "environment" to see what we found
+  state $xod_libraries;
+  return $xod_libraries if $xod_libraries;
+
+  $xod_libraries = config()->{'path'}->{'xod_library'};
+  return if $xod_libraries;
+
+  # FIXME: xodc should tell us this
+  given ($^O) { # $OSNAME
+    when ('linux') {
+      # at least for ubuntu ~16.04:
+      $xod_libraries = "/home/".$ENV{'USER'}."/xod/__lib__";
+      }
+    default {
+      die "Sadly, this script doesn't know how to find the XOD libraries directory on '$^O'\nSet .config path=>xod_library=>'/some/thing' for now, and submit the solution to https://github.com/awgrover/arduino-2-xod/issues";
+      }
+    }
+
+  return $xod_libraries;
+  }
+
+sub xodc {
+  # find the xodc tool: config->`which`->`locate`
+  state $xodc;
+  return $xodc if $xodc;
+
+  $xodc = config()->{'path'}->{'xodc'};
+  if (!$xodc) {
+    $xodc = `which xodc`;
+    chomp $xodc;
+    }
+  if (!$xodc) {
+    $xodc = `whereis xodc`;
+    chomp $xodc;
+    $xodc =~ /: /; # nm: /path/to/it
+    $xodc = $';
+    }
+  if (!$xodc) {
+    die "Can't find xodc, add to .config as bin=>xodc=>\"/path/to/it\"";
+    }
+
+  return $xodc;
+  }
 
 # Types we know how to translate to xod
 # (plus the "class" type of interest of course)
@@ -297,8 +364,8 @@ sub do_unpack {
     my $xodtmp = xodball2tmp( $xod );
     say "INTO $xodtmp";
     system('mkdir','-p', $xodtmp) and die;
-    say( join " ", ($xodc,'unpack', $xod, $xodtmp."/x"));
-    system($xodc,'unpack', $xod, $xodtmp."/x") and die;
+    say( join " ", (xodc,'unpack', $xod, $xodtmp."/x"));
+    system(xodc,'unpack', $xod, $xodtmp."/x") and die;
     say "# unpacked: $xodtmp";
     }
   }
@@ -992,7 +1059,7 @@ sub find {
 
 sub do_library {
     # make the library bits
-    # --- $ardlib # > $xoddir/$author/$arddir
+    # --- $ardlib # > xod_libraries/$author/$arddir
 
     my $any;
     foreach my $ard (@ARGV) { 
@@ -1009,15 +1076,21 @@ sub xod_lib_name {
   }
 
 sub xod_lib_dir {
+  # Derive the xod-lib-name from the arduino-lib-name
+  # --xoddir forces it to a specific dir name
+  # --project forces it to a project instead of library
   my ($ardlib) = @_;
   # lib-dir: $xod/__lib__/$user/$ardlibname-ll
 
   return $gSwitches->{'xoddir'} if $gSwitches->{'xoddir'};
-  my $lib_dir = $xoddir;
-  $lib_dir .= "/" . ($gSwitches->{'author'} || config()->{'xod'}->{'username'});
+
   my $lib_name = lc( ard_lib_property($ardlib,'name') );
     $lib_name =~ s/[_ ]/-/g;
     $lib_name =~ s/[^0-9a-z\/-]//g;
+ 
+  my $lib_dir = ($gSwitches->{'project'}) ? xod_projects : xod_libraries;
+
+  $lib_dir .= "/" . ($gSwitches->{'author'} || config()->{'xod'}->{'username'});
   $lib_dir .= "/" . $lib_name;
   $lib_dir .= '-ll';
   $lib_dir;
@@ -1106,8 +1179,8 @@ sub _do_library {
 
     # link as project
     my $project_name = basename($defn{'xod'}->{'libname'});
-    system('rm', dirname($xoddir)."/$project_name") if -e dirname($xoddir)."/$project_name";
-    my @cmd = ('ln','-s', $subdir, dirname($xoddir)."/$project_name");
+    system('rm', xod_projects."/$project_name") if -e dirname(xod_libraries)."/$project_name";
+    my @cmd = ('ln','-s', $subdir, xod_projects."/$project_name");
     unshift @cmd, 'echo' if $gSwitches->{'dryrun'};
     system(@cmd) and die($!);
     say "linked project $project_name to that lib";
@@ -1234,7 +1307,7 @@ sub specialize_xodp {
 
 sub do_capture {
   my ($xod) = @ARGV;
-  # we tend to build into $xoddir/__lib__
+  # we tend to build into xod_libraries/__lib__
   # so, we should capture for this .git
 
   if (!-e "$xod/project.xod") {
@@ -1270,12 +1343,16 @@ sub do_github_fetch {
   say "Downloaded unzipped into tmp/$libname";
   }
 
-
 my %ConfigDesc = (
   xod => {
     username => 'xod account username for author',
     },
   email => 'email for contact by library users',
+  path => {
+    'xodc' => 'the xodc tool for pack/unpack',
+    'xod_libraries' => 'path to XOD libraries',
+    'xod_projects' => 'path to XOD projects',
+    }
   );
 
 sub do_config {
@@ -1299,15 +1376,16 @@ sub config {
     }
 
   # sub-parts
-  $config->{'xod'} ||= {};
+  #$config->{'xod'} ||= {};
 
   return $config;
   }
 
 my %commands = (
     make => [
-        ''=>'--- ardlibdir # Make the xod library',
+        ''=>'--- ardlibdir # Make the xod library from an arduinio ide lib',
         'github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
+        'project' => 'Create a xod project, not a library',
         'help|h|H'=>'this',
         ],
     # Parts
