@@ -1,6 +1,11 @@
 # Dev-notes: Automatic Arduino Library to XOD library
 
-
+- [ ] rf24
+        #pragma XOD require "http://tmrh20.github.io/RF24" ?
+- [ ] for args of `&` type, treat as return type and emit
+- [x] look at enums, arg type is just int
+-- [ ] make a patch with the descrption having all values?
+- [ ] rf24 has cdoc, can we extract as desc?
 
 ## Example: NeoPixel
 

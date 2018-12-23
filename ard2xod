@@ -22,7 +22,18 @@ $BUG{'type_name_dash'} = 1; # the patch-name is supposed to be the custom type n
 my $XODRowSize = 102; # seems to be every 102 pixels
 my $XODColSize = 34; # seems to be
 
-# FIXME: hard code xod location
+BEGIN {
+if ($ENV{'DEBUG'}) {
+sub debug {
+  # & or msg,msg,msg
+  my $from = (caller(0))[2];
+  say ("[$from] ",(ref($_[0]) eq 'CODE') ? $_[0]->() : join(" ",@_));
+  }
+  }
+else {
+  sub debug {}
+  }
+}
 
 sub xod_projects {
   # find the directory that contains the XOD projects
@@ -101,6 +112,7 @@ my %cpp2xod_type = (
   'TypeKind.INT:2' => 'xod/patch-nodes/input-number',
   'TypeKind.INT:1' => 'xod/patch-nodes/input-number',
   'TypeKind.BOOL:1' => 'xod/patch-nodes/input-boolean',
+  'TypeKind.ENUM:4' => 'xod/patch-nodes/input-number', # FIXME: when we have an enum type
   #'TypeKind.POINTER:8' => 'xod/patch-nodes/input-number', # pointers are bits # FIXME: this is actually a pointer to something
   'TypeKind.VOID:-2' => 'void', # special
   bool => 'xod/patch-nodes/input-boolean',
@@ -337,6 +349,12 @@ sub ard_lib_property {
     $properties{ $ard }->{$property};
     }
 
+sub xod2xodball {
+  # simple name derivation: just the leaf
+  my ($xoddir) = @_;
+  basename($xoddir) . ".xodball";
+  }
+
 sub xodball2tmp {
   # xodball to unpacked tmp dir
   # check for sanity yourself
@@ -348,6 +366,31 @@ sub xodball2tmp {
   $path .= "/".$leaf;
 
   $path;
+  }
+
+sub do_pack {
+  # --- $xodprojectdir # > /tmp/
+  fail_with_help("Expected a project-dir",'pack') if !@ARGV;
+
+  foreach my $xod (@ARGV) {
+
+    if (!-d $xod || !-e $xod || (basename($xod) =~ /\.xodball$/) ) {
+      say STDERR "# Expected a project-directory, but it's not: $xod";
+      exit 1;
+      }
+
+    if (! -e "$xod/project.xod") {
+      say STDERR "# Expected a project-directory with a project.xod, but it's not: $xod";
+      exit 1;
+      }
+    
+    my $xodtmp = "tmp/".xod2xodball($xod);
+    say "INTO $xodtmp";
+    system('mkdir','-p', 'tmp') and die;
+    my @cmd = (xodc,'pack', $xod, $xodtmp);
+    system(@cmd) and die;
+    say "# packed: $xodtmp";
+    }
   }
 
 sub do_unpack {
@@ -364,8 +407,8 @@ sub do_unpack {
     my $xodtmp = xodball2tmp( $xod );
     say "INTO $xodtmp";
     system('mkdir','-p', $xodtmp) and die;
-    say( join " ", (xodc,'unpack', $xod, $xodtmp."/x"));
-    system(xodc,'unpack', $xod, $xodtmp."/x") and die;
+    my @cmd = (xodc,'unpack', $xod, $xodtmp."/x");
+    system(@cmd) and die;
     say "# unpacked: $xodtmp";
     }
   }
@@ -383,40 +426,50 @@ sub foreach_method {
   say "Count of nodes: ".@$methods_ast;
   METHOD:
   foreach my $method (@$methods_ast) {
+    next if $gSwitches->{'only'} && $method->{'text'} ne $gSwitches->{'only'};
+    debug sub { "method " . $method->{'text'} };
+
     my $args_ast = find_all(0, $method, \&p_toplevel, p_node_type('PARM_DECL'));
-    #say "  parms ",dump_shallow($_) foreach @$args_ast;
+    debug "  parms ".dump_shallow($_) foreach @$args_ast;
 
     my @inputs; # [ $name, $xodtypename, $actual-spelled-type ]
-    my @saw; # for error message
+    my @saw = $method->{'text'} . "("; # for error message
     #say "  --- args...";
     foreach my $parm (@$args_ast) {
       my $input_name = $parm->{'text'};
       $input_name = cpp_safe_token($input_name);
 
       my $full_type = $parm->{'type'}; # unparsed, sad. "int *", "bool ()"
-      push @saw, "$full_type $input_name";
+      push @saw, "$full_type $input_name, ";
 
       my $xod_type = to_xod_type($defn, \@saw, $parm); # can throw "Don't know cpp type:..."
       if ( ! $xod_type ) {
-        push @warnings, "Skipped ".$method->{'text'}." (line ".$method->{'line'}.") because we don't know the parameter type";
+        push @warnings, "Skipped ".$method->{'text'}."(..) (line ".$method->{'line'}.") because we don't know the parameter type $full_type";
         say "# ",$warnings[-1];
         next METHOD;
         }
 
       my $type_name = $parm->{'type_name'};
+      debug sub { "  param (safed) '$input_name' : '$full_type' ($type_name) -> '$xod_type' " };
       push @inputs, [ $input_name, $xod_type, $type_name ];
       }
 
-    # check output type
-    if ( ! $method->{'node'} eq 'CONSTRUCTOR' ) {
+    # just check output type
+    if ( $method->{'node'} eq 'CONSTRUCTOR' ) {
+      debug sub { "  constructor, returns self " };
+      }
+    else {
       my $outtype = to_xod_type($defn, [], $method );
       if ( ! $outtype ) {
-        say "# Skipped ".$method->{'text'}." (line ".$method->{'line'}.") because we don't know the output type";
+        say "method ",dump_shallow($method);
+        push @warnings, "Skipped ".$method->{'text'}." (line ".$method->{'line'}.") because we don't know the output type";
+        say "# ",$warnings[-1];
         next;
         }
+      debug sub { "  output: '".$method->{'type'}."' -> '$outtype'" };
       }
 
-    #say "Inputs: ",Dumper(\@inputs);
+    debug sub { "Inputs: ",Dumper(\@inputs); };
     #say "method ".$method->{'text'}."(",join(", ", map {$_->[0]} @inputs),")";
     &$block( $ct, { name=> $method->{'text'}, type=>($method->{'return_type'} || $method->{'type'}), type_name=>$method->{'type_name'} }, \@inputs );
 
@@ -427,16 +480,16 @@ sub foreach_method {
 
 sub to_xod_type {
   my ($defn, $saw, $parm) = @_;
-  my $full_type = $parm->{'type'};
+  my $full_type = $parm->{'type'} eq 'TypeKind.FUNCTIONPROTO:1' ? $parm->{'return_type'} : $parm->{'type'};
   my ($base_type, @more_type_pieces) = split(" ",$full_type);
 
   my $xod_type;
 
-  # for return, don't need it...
+  # for return, we can't assume it's "this", so return it possibly as duplicate
   if ( ($base_type eq 'TypeKind.LVALUEREFERENCE:1') && $parm->{'type_name'} eq ($defn->{'arduino'}->{'class_name'} . ' &') ) {
     # $Class &
     #say "REF";
-    $xod_type = $defn->{'xod'}->{'cons_patch_name'};
+    $xod_type = "@/input-".$defn->{'xod'}->{'cons_patch_name'};
     }
   else {
     $xod_type = $cpp2xod_type{$base_type};
@@ -447,8 +500,8 @@ sub to_xod_type {
     local $Data::Dumper::Maxdepth=1;
     say Dumper($parm);
     }
-    my $sofar = join ", ", @$saw;
-    say "Don't know type for argument in method ".$parm->{'text'}."($sofar,...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
+    my $sofar = join "", @$saw;
+    say "Don't know type for argument '".$parm->{'text'}."' in $sofar,...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
     return undef;
     }
   $xod_type;
@@ -528,11 +581,9 @@ sub definitions {
     }
 
   my $libname;
-  if ($xod =~ /\/__lib__\//) {
-    $libname = xod_lib_name($ard);
-    if ( $libname =~ /[^a-zA-Z0-9\/-]/ ) {
-      die "xod dir for libraries must only use valid xod chars: [a-zA-Z0-9-], saw '$libname' from '$xod'" 
-      }
+  $libname = xod_lib_name($ard);
+  if ( $libname =~ /[^a-zA-Z0-9\/-]/ ) {
+    die "xod dir for libraries must only use valid xod chars: [a-zA-Z0-9-], saw '$libname' from '$xod'" 
     }
 
   if (!$xod_is_new && !-e "$xod/project.xod") {
@@ -549,7 +600,7 @@ sub definitions {
   my $ast = `python ./dump_ast.py "$dot_h"`;
   exit(1) if $?;
 
-  $ast = eval($ast);
+  $ast = decode_json($ast);
   die $@ if $@;
  
   # We are always working on the first class...
@@ -592,7 +643,7 @@ sub definitions {
   }
 
 sub make_patches {
-  # the factored code to generate patches from ast elements
+  # the factored code to generate patches from ast elements: methods
   # fill in the various makers
 
   my ($what, $ard, $xod, $template, $description_maker, $xodp_maker, $template_data, $ast_predicates) = @_;
@@ -624,7 +675,7 @@ sub make_patches {
     #say "Description '",$xodp{'description'},"'";
 
     $xodp_maker->(\%defn, \%xodp, $method, $args, $ct);
-    #say "Patch for $what: $this_method_name ",Dumper(\%xodp);
+    debug sub { "Patch for $what: $this_method_name ".Dumper(\%xodp); };
 
     # xodp_maker can provide name
     my $patch_name = delete $xodp{'patch_name'};
@@ -755,6 +806,7 @@ sub do_methods {
     # %xodp
     sub { 
       my ($defn, $xodp, $method, $args, $ct) = @_;
+      debug "  args ".dump_shallow($_) foreach @$args;
 
       say "Method ", $method->{'name'}."(".(join ",", map{$_->[0]} @$args).")";
       # each "row" of a patch
@@ -787,9 +839,11 @@ sub do_methods {
       my @rez_nodes;
 
       push @rez_nodes, [ dev => $defn->{'xod'}->{'output_type_name'}];
+      debug sub { "  output 'dev' -> '".$defn->{'xod'}->{'output_type_name'}."'" };
 
       # Skip if void
       if ($method->{'type'} ne 'TypeKind.VOID:-2' ) {
+        debug sub { "  xodp extra output 'val' -> '$outtype'" };
         push @rez_nodes, [ val => $outtype ];
         }
 
@@ -1072,7 +1126,7 @@ sub do_library {
 sub xod_lib_name {
   my ($ard) = @_;
   my $xod = xod_lib_dir($ard);
-  basename(dirname($xod)) . "/" .basename($xod);
+  $gSwitches->{'project'} ? basename($xod) : basename(dirname($xod)) . "/" .basename($xod);
   }
 
 sub xod_lib_dir {
@@ -1090,7 +1144,7 @@ sub xod_lib_dir {
  
   my $lib_dir = ($gSwitches->{'project'}) ? xod_projects : xod_libraries;
 
-  $lib_dir .= "/" . ($gSwitches->{'author'} || config()->{'xod'}->{'username'});
+  $lib_dir .= "/" . ($gSwitches->{'author'} || config()->{'xod'}->{'username'}) if !$gSwitches->{'project'};
   $lib_dir .= "/" . $lib_name;
   $lib_dir .= '-ll';
   $lib_dir;
@@ -1177,13 +1231,15 @@ sub _do_library {
       );
     write_patch( "$subdir/readme/patch.xodp", \%xodp);
 
-    # link as project
-    my $project_name = basename($defn{'xod'}->{'libname'});
-    system('rm', xod_projects."/$project_name") if -e dirname(xod_libraries)."/$project_name";
-    my @cmd = ('ln','-s', $subdir, xod_projects."/$project_name");
-    unshift @cmd, 'echo' if $gSwitches->{'dryrun'};
-    system(@cmd) and die($!);
-    say "linked project $project_name to that lib";
+    if (!$gSwitches->{'project'}) {
+      # link as project
+      my $project_name = basename($defn{'xod'}->{'libname'});
+      system('rm', xod_projects."/$project_name") if -e dirname(xod_libraries)."/$project_name";
+      my @cmd = ('ln','-s', $subdir, xod_projects."/$project_name");
+      unshift @cmd, 'echo' if $gSwitches->{'dryrun'};
+      system(@cmd) and die($!);
+      say "linked project $project_name to that lib";
+      }
     
     $subdir;
     }
@@ -1399,12 +1455,14 @@ my %commands = (
         ],
     constructor => [ 
         ''=>'--- ardlibdir # Make the constructor nodes',
+        'project' => 'Create a xod project, not a library',
         'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
         'help|h|H'=>'this',
         ],
     methods => [ 
         ''=>'--- ardlibdir # Make the public method nodes',
+        'project' => 'Create a xod project, not a library',
         'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'only:s' => 'only make this exact method name',
         'limit:n' => 'only make this many methods',
@@ -1412,6 +1470,7 @@ my %commands = (
         ],
     static_methods => [ 
         ''=>'--- ardlibdir # Make the public static method nodes',
+        'project' => 'Create a xod project, not a library',
         'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'only:s' => 'only make this exact method name',
         'limit:n' => 'only make this many methods',
@@ -1419,12 +1478,14 @@ my %commands = (
         ],
     specialize => [
         ''=>'--- ardlibdir # create specialization patches',
+        'project' => 'Create a xod project, not a library',
         'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'limit:n' => 'only make this many properties',
         'help|h|H'=>'this',
         ],
     properties => [ 
         ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public property nodes',
+        'project' => 'Create a xod project, not a library',
         'limit:n' => 'only make this many properties',
         'help|h|H'=>'this',
         ],
@@ -1440,6 +1501,10 @@ my %commands = (
       '' => '--- ardlibdir # dump the ast',
       'help|h|H'=>'this',
       ],
+    pack => [
+        ''=>'--- some-project # Pack a .xodball into /tmp/$something.xodball',
+        'help|h|H'=>'this',
+        ],
     unpack => [
         ''=>'Unpack a .xodball into /tmp/xodball/* for further processing',
         'help|h|H'=>'this',
