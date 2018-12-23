@@ -1,11 +1,28 @@
 # Dev-notes: Automatic Arduino Library to XOD library
 
-- [ ] rf24
-        #pragma XOD require "http://tmrh20.github.io/RF24" ?
 - [ ] for args of `&` type, treat as return type and emit
 - [x] look at enums, arg type is just int
 -- [ ] make a patch with the descrption having all values?
 - [ ] rf24 has cdoc, can we extract as desc?
+- [ ] update readme, 
+-- put neopixel in own
+-- .config
+- [ ] http://docs.platformio.org/en/latest/librarymanager/config.html
+-- possibly has repository.type=='git' && frameworks='arduino' &7 repository.url for real .git/code
+-- frameworks is string or array of string for list
+
+Conversion Request Form:
+
+* Do you realize that this is still experimental, and the result may be disappointing, and/or require manual fixes?
+* Can you wait a week? I usually work on this only on the weekends.
+* Will you test this library?
+* Will you convert or write some examples in XOD?
+* Will you give me feedback/critique of the converted code?
+* Will you publish the library after improving it?
+* What is the url to Arduino Library on github, or a .zip structred properly.
+* How popular you think the library is?
+* What features are you particularly interested in, and will likely be using?
+
 
 ## Example: NeoPixel
 

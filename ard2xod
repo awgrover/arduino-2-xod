@@ -109,15 +109,27 @@ sub xodc {
 my %cpp2xod_type = (
   # we could handle * types with more info here:
   'TypeKind.INT:4' => 'xod/patch-nodes/input-number', # ints are bytes
+  'TypeKind.UINT:4' => 'xod/patch-nodes/input-number', # ints are bytes
   'TypeKind.INT:2' => 'xod/patch-nodes/input-number',
   'TypeKind.INT:1' => 'xod/patch-nodes/input-number',
+  'TypeKind.USHORT:2' =>'xod/patch-nodes/input-number', 
+  'TypeKind.UCHAR:1' =>'xod/patch-nodes/input-number', 
+  'TypeKind.LONG:8' =>'xod/patch-nodes/input-number', 
+  'TypeKind.ULONG:8' =>'xod/patch-nodes/input-number', 
+  'TypeKind.DOUBLE:8' =>'xod/patch-nodes/input-number', 
   'TypeKind.BOOL:1' => 'xod/patch-nodes/input-boolean',
   'TypeKind.ENUM:4' => 'xod/patch-nodes/input-number', # FIXME: when we have an enum type
   #'TypeKind.POINTER:8' => 'xod/patch-nodes/input-number', # pointers are bits # FIXME: this is actually a pointer to something
   'TypeKind.VOID:-2' => 'void', # special
-  bool => 'xod/patch-nodes/input-boolean',
-  # LVALUEREFERENCE is handled by xxx IFF the type is this class
+  # bool => 'xod/patch-nodes/input-boolean', cruft I think
+  # LVALUEREFERENCE is handled by to_xod_type IFF the type is this class
   );
+my %danger_types; @danger_types{
+  # generate a warning about the size of these types
+  'TypeKind.LONG:8',
+  'TypeKind.ULONG:8',
+  'TypeKind.DOUBLE:8',
+  } = (undef,);
 
 # A .cpp for constructors looks like this:
 my $cpp_constructor = <<'EOS'; # use {% ... %} interpolations
@@ -322,12 +334,32 @@ sub add_warnings {
   }
 
 sub ard_dot_h {
+  state %ard_dot_h;
+
   my ($ard) = @_;
-  # FIXME: could cache it
-  my $fname = basename($ard) . ".h";
-  my $path = "$ard/$fname";
-  die "Expected the .h '$fname' in $ard" if (!-e $path);
-  $path;
+  return $ard_dot_h{$ard} if $ard_dot_h{$ard};
+
+  my @candidates;
+
+  # the directory name is often the .h name
+  push @candidates, basename($ard) . ".h";
+
+  if (-e "$ard/library.properties") {
+    push @candidates, ard_lib_property($ard,'name'). ".h";
+    }
+  
+  foreach my $fname (@candidates) {
+    my $path = "$ard/$fname";
+
+    if (! -e $path && -d "$ard/src") {
+      # maybe src/...
+      $path = "$ard/src/$fname";
+      }
+    $ard_dot_h{$ard} = $path;
+    return $path if -e $path
+    }
+
+  die "Expected the .h in $ard or $ard/src, for '".join("', '",@candidates)."'";
   }
 
 sub ard_lib_property {
@@ -459,10 +491,10 @@ sub foreach_method {
       debug sub { "  constructor, returns self " };
       }
     else {
-      my $outtype = to_xod_type($defn, [], $method );
+      my $outtype = to_xod_type($defn, [ $method->{'type_name'}."/".$method->{'return_type'}." ".$method->{'text'}."(" ], $method );
       if ( ! $outtype ) {
         say "method ",dump_shallow($method);
-        push @warnings, "Skipped ".$method->{'text'}." (line ".$method->{'line'}.") because we don't know the output type";
+        push @warnings, "Skipped ".$method->{'text'}." (line ".$method->{'line'}.") because we don't know the output type ".$method->{'type_name'}."/".$method->{'return_type'};
         say "# ",$warnings[-1];
         next;
         }
@@ -503,6 +535,10 @@ sub to_xod_type {
     my $sofar = join "", @$saw;
     say "Don't know type for argument '".$parm->{'text'}."' in $sofar,...),\nOnly know: ".join(",", keys %cpp2xod_type) ;
     return undef;
+    }
+  if  (exists $danger_types{$base_type}) {
+    my $sofar = join "", @$saw;
+    push @warnings, "Dangerous type conversion from '$base_type', for argument '".$parm->{'text'}."' in $sofar,...)";
     }
   $xod_type;
   }
