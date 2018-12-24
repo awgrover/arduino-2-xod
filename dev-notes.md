@@ -4,15 +4,18 @@
 - [x] look at enums, arg type is just int
 -- [ ] make a patch with the descrption having all values?
 -- [ ] using an input of type enum requires a cast
+-- static_cast<Test>
+    is it an enum? param type=>'TypeKind.ENUM:4'
+    what enum type is it?
 - [ ] rf24 has cdoc, can we extract as desc?
 - [ ] update readme, 
 -- put neopixel in own
--- .config
+-- note .config
 - [ ] http://docs.platformio.org/en/latest/librarymanager/config.html
 -- possibly has repository.type=='git' && frameworks='arduino' &7 repository.url for real .git/code
 -- frameworks is string or array of string for list
-- [ ] locate libclang
-/usr/lib/llvm-3.8/lib/libclang-3.8.so.1
+- [ ] change to libclang for perl bindings (check)
+
 
 Conversion Request Form:
 

@@ -160,7 +160,7 @@ void evaluate(Context ctx) {
   // var names are valid c++ because we got them from the arglist of the c++ constructor
   {% 
   foreach my $arg ( @{$constructor{'arguments'} } ) {
-    $OUT .= "auto ".$arg->{'name'}." = getValue<input_".$arg->{'name'}.">(ctx); // ".$arg->{'type_name'} ."\n  ";
+    $OUT .= "auto ".$arg->{'name'}." = static_cast<".$arg->{'type_name'}."> (getValue<input_".$arg->{'name'}.">(ctx)); // ".$arg->{'type_name'} ."\n  ";
   } 
   %}
 
@@ -188,7 +188,7 @@ void evaluate(Context ctx) {
   // var names are valid c++ because we got them from the arglist of the c++ method
   {% 
   foreach my $arg ( @{$method{'arguments'} } ) {
-    $OUT .= "auto ".$arg->{'name'}." = getValue<input_".$arg->{'name'}.">(ctx); // ".$arg->{'type_name'} ."\n  ";
+    $OUT .= "auto ".$arg->{'name'}." = static_cast<".$arg->{'type_name'}."> (getValue<input_".$arg->{'name'}.">(ctx)); // ".$arg->{'type_name'} ."\n  ";
   } 
   %}
 
@@ -242,7 +242,7 @@ void evaluate(Context ctx) {
   // var names are valid c++ because we got them from the arglist of the c++ method
   {% 
   foreach my $arg ( @{$method{'arguments'} } ) {
-    $OUT .= "auto ".$arg->{'name'}." = getValue<input_".$arg->{'name'}.">(ctx); // ".$arg->{'type_name'} ."\n  ";
+    $OUT .= "auto ".$arg->{'name'}." = static_cast<".$arg->{'type_name'}."> (getValue<input_".$arg->{'name'}.">(ctx)); // ".$arg->{'type_name'} ."\n  ";
   } 
   %}
 
@@ -373,12 +373,20 @@ sub ard_dot_h {
   }
 
 sub ard_lib_property {
-    # get the value from the .properties
+    # get the value from the library.properties & library.json
+    # Treats library.json as secondard information, merges
+    # Has a few magic keys
+
     my ($ard, $property) = @_;
     state %properties;
 
     $properties{ $ard } ||= do {
         my %p;
+
+        if (-e "$ard/library.json") {
+          # let library.properties overwrite later
+          %p =  %{ decode_json( `cat $ard/library.json` ) };
+          }
 
         my $ph = IO::File->new($ard . "/library.properties", 'r') or die($!);
         while (<$ph>) {
@@ -387,6 +395,23 @@ sub ard_lib_property {
             }
         \%p;
         };
+
+    # magic keys
+    given ($property) {
+      when ('github-url') {
+        my $u = $properties{ $ard }->{'repository'}->{'url'};
+        if ($u) {
+          $u =~ s/\.git$//; # trailing .git
+          }
+        else {
+          $u = $properties{ $ard }->{'url'}; # defined as "website" so may not be git
+          }
+        if ($u !~ /\/\/github.com\//) {
+          die "The github-url from library.json['respository']['url'] || library.properties['url'] is not on github, and won't work with XOD version ~0.25, use --github-url";
+          }
+        return $u;
+        }
+      }
 
     $properties{ $ard }->{$property};
     }
@@ -663,8 +688,8 @@ sub definitions {
     );
   $defn{'arduino'}->{'.h'} = basename($dot_h);
   $defn{'arduino'}->{'class_name'} = $class_ast->{'text'} or die("No {'text'} in the class node"); # WAS $class_name
-  $defn{'arduino'}->{'github_url'} = $gSwitches->{'github-url'} || ard_lib_property($ard,'url');
-  warn "The github url was in library.properties: ".ard_lib_property($ard,'url') if $gSwitches->{'github-url'} && ard_lib_property($ard,'url');
+  $defn{'arduino'}->{'github_url'} = $gSwitches->{'github-url'} || ard_lib_property($ard,'github-url');
+  warn "The github url was in library.properties: ".ard_lib_property($ard,'github-url') if !$gSwitches->{'github-url'} && ard_lib_property($ard,'github-url');
 
   $defn{'xod'}->{'libname'} = $libname;
   $defn{'xod'}->{'cons_patch_name'} = lc( $defn{'arduino'}->{'class_name'} ); # base typename & patchname # WAS $cons_patch_name
@@ -1238,13 +1263,13 @@ sub _do_library {
     push @description, $ardlibname . ($ardlibname eq $arddirname ? '' : " ($arddirname)" ) . " by ".ard_lib_property($ard, 'author'). ". Version ".ard_lib_property($ard,'version');
 
     # url
-    my $src_url = $gSwitches->{'github-url'} || ard_lib_property($ard,'url');
+    my $src_url = $gSwitches->{'github-url'} || ard_lib_property($ard,'github-url');
     if (!$src_url) {
       warn "No url from --github-url nor $ard/library.properties[url]\n";
       push @description, "Unknown source";
       }
     else {
-      push @description, $gSwitches->{'github-url'} || ard_lib_property($ard,'url');
+      push @description, $gSwitches->{'github-url'} || ard_lib_property($ard,'github-url');
       }
 
     my %xod_project = (
@@ -1454,6 +1479,7 @@ my %ConfigDesc = (
     'xodc' => 'the xodc tool for pack/unpack',
     'xod_libraries' => 'path to XOD libraries',
     'xod_projects' => 'path to XOD projects',
+    'libclang' => "path to libclang shared library, that python's clang.cindex.Config.set_library_file() will accept, libclang.so.1 on linux.",
     }
   );
 

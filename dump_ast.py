@@ -29,7 +29,7 @@ def libclang():
         if 'path' in config:
             if 'libclang' in config['path']:
                 rez = config['path']['libclang']
-                print "# config " + rez
+                #print "# config " + rez
     
     if not rez:
         # clang -print-search-dirs might know
@@ -43,15 +43,15 @@ def libclang():
             paths = paths[0]
             paths = re.sub( r'^libraries: =', '', paths)
             paths = paths.split(':')
-            print "#cl  "; pprint(list(paths))
+            #print "#cl  "; pprint(list(paths))
             paths = list(glob.glob(p + "/libclang*.so*" ) for p in paths)
             paths = [item for sublist in paths for item in sublist] # flatten
             paths = list( os.path.realpath(p) for p in paths) # lots of relative .. typically
             # use 1st that is found
-            print "#  "; pprint(list(paths))
+            #print "#  "; pprint(list(paths))
             if len(paths) > 0:
                 rez = paths[0]
-                print "# clang"
+                #print "# clang"
 
     if not rez:
         # llvm-config might know
@@ -64,10 +64,10 @@ def libclang():
             paths = list(glob.glob(p + "/libclang*.so*" ) for p in paths)
             paths = [item for sublist in paths for item in sublist]
             paths.sort( key = lambda p: len(p.split("/"))) # shortest "depth"
-            print "#  "; pprint(list(paths))
+            #print "#  "; pprint(list(paths))
             if len(paths) > 0:
                 rez = paths[0]
-                print "# llvm-config"
+                #print "# llvm-config"
 
     # FIXME: put finding for windows  here
 
@@ -75,7 +75,7 @@ def libclang():
         if os.system("which dpkg-query >/dev/stderr"):
             paths = os.popen("dpkg-query -S 'libclang*.so*' | awk '{print $2}'").read().split("\n")
             paths = filter(lambda p: p != '', paths)
-            print "#  "; pprint(paths)
+            #print "#  "; pprint(paths)
             # not a link is probably better
             better_paths = filter(lambda p: not os.path.islink(p), paths)
             if better_paths == 0:
@@ -85,7 +85,7 @@ def libclang():
             paths.sort( key = lambda p: len(p.split("/"))) # shortest "depth"
             if len(paths) > 0:
                 rez = paths[0]
-            print "# from dkpkg"
+            #print "# from dkpkg"
 
         if not rez:
             # try `locate`
@@ -101,11 +101,11 @@ def libclang():
                 paths.sort( key = lambda p: len(p.split("/"))) # shortest "depth"
                 if len(paths) > 0:
                     rez = paths[0]
-                print "# from locate"
+                #print "# from locate"
         
     if not rez:
         raise Exception('Couldn\'t find a libclang library, add "path" : { "libclang" : "some/where" } to .config file')
-    print "Using libclang "+rez
+    print >> sys.stderr, "Using libclang "+rez
     return rez
 
 def get_children(node):
@@ -164,18 +164,31 @@ def get_text(node):
         'node' : kind,
         'actual_type' : node.type.kind.__str__(),
         'type' : canon_type,
-        'type_name' : node.result_type.spelling, 
+        'type_name' : node.type.get_canonical().spelling,
         'text' : text, 
         'access' : node.access_specifier.name,
         'static' : 1 if node.is_static_method() else 0, 
         'line' : node.location.line
         }
 
+    #print "# .canaon.kind " + node.type.get_canonical().kind.__str__()
+    if node.type.get_canonical().kind.__str__() == 'TypeKind.ENUM':
+        elements['type_name'] = node.type.get_canonical().spelling # the enum name
+        # .type : <clang.cindex.Type object
+        # .type.kind : TypeKind.TYPEDEF
+        #print "    # try .type.get_canonical() " + node.type.get_canonical().__str__()
+        #print "    # try .type.get_canonical().spell " + node.type.get_canonical().spelling
+        #print "    # try .type.get_canonical().kind " + node.type.get_canonical().kind.__str__()
+        #print "    # try .type.get_canonical().kind " + node.type.get_canonical().kind.spelling
+        #print "    # try .type.kind " + node.type.kind.__str__()
+        #print "    # try .type.kind " + node.type.kind.spelling
+
     if kind == 'CXX_METHOD':
         #print("Method:",text, node.access_specifier.name)
         canonical_return = str(node.result_type.get_canonical().kind) + ":" + str(node.result_type.get_canonical().get_size())
         elements['return_actual_type'] = node.result_type.kind.__str__()
         elements['return_type'] = canonical_return.__str__()
+        elements['type_name'] = node.result_type.spelling 
     return '{ ' + ", ".join( ("\"{}\" : {}".format(x,json.dumps(y)) for x, y in elements.items()) )
 
 if len(sys.argv) != 2:
