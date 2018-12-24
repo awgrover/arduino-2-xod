@@ -3,6 +3,7 @@
 - [ ] for args of `&` type, treat as return type and emit
 - [x] look at enums, arg type is just int
 -- [ ] make a patch with the descrption having all values?
+-- [ ] using an input of type enum requires a cast
 - [ ] rf24 has cdoc, can we extract as desc?
 - [ ] update readme, 
 -- put neopixel in own
@@ -10,6 +11,8 @@
 - [ ] http://docs.platformio.org/en/latest/librarymanager/config.html
 -- possibly has repository.type=='git' && frameworks='arduino' &7 repository.url for real .git/code
 -- frameworks is string or array of string for list
+- [ ] locate libclang
+/usr/lib/llvm-3.8/lib/libclang-3.8.so.1
 
 Conversion Request Form:
 

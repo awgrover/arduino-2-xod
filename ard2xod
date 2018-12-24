@@ -112,11 +112,12 @@ my %cpp2xod_type = (
   'TypeKind.UINT:4' => 'xod/patch-nodes/input-number', # ints are bytes
   'TypeKind.INT:2' => 'xod/patch-nodes/input-number',
   'TypeKind.INT:1' => 'xod/patch-nodes/input-number',
-  'TypeKind.USHORT:2' =>'xod/patch-nodes/input-number', 
-  'TypeKind.UCHAR:1' =>'xod/patch-nodes/input-number', 
-  'TypeKind.LONG:8' =>'xod/patch-nodes/input-number', 
-  'TypeKind.ULONG:8' =>'xod/patch-nodes/input-number', 
-  'TypeKind.DOUBLE:8' =>'xod/patch-nodes/input-number', 
+  'TypeKind.USHORT:2' => 'xod/patch-nodes/input-number', 
+  'TypeKind.UCHAR:1' => 'xod/patch-nodes/input-byte', 
+  'TypeKind.CHAR_S:1' => 'xod/patch-nodes/input-byte',  
+  'TypeKind.LONG:8' => 'xod/patch-nodes/input-number', 
+  'TypeKind.ULONG:8' => 'xod/patch-nodes/input-number', 
+  'TypeKind.DOUBLE:8' => 'xod/patch-nodes/input-number', 
   'TypeKind.BOOL:1' => 'xod/patch-nodes/input-boolean',
   'TypeKind.ENUM:4' => 'xod/patch-nodes/input-number', # FIXME: when we have an enum type
   #'TypeKind.POINTER:8' => 'xod/patch-nodes/input-number', # pointers are bits # FIXME: this is actually a pointer to something
@@ -335,17 +336,26 @@ sub add_warnings {
 
 sub ard_dot_h {
   state %ard_dot_h;
+  # Often it's the $directory.h
+  # or the library.properties['name'] .h
+  # But, you may need to --dot-h $soemthing
 
   my ($ard) = @_;
   return $ard_dot_h{$ard} if $ard_dot_h{$ard};
 
   my @candidates;
 
-  # the directory name is often the .h name
-  push @candidates, basename($ard) . ".h";
+  if ($gSwitches->{'dot-h'}) {
+    push @candidates, $gSwitches->{'dot-h'};
+    }
 
-  if (-e "$ard/library.properties") {
-    push @candidates, ard_lib_property($ard,'name'). ".h";
+  else {
+    # the directory name is often the .h name
+    push @candidates, basename($ard) . ".h";
+
+    if (-e "$ard/library.properties") {
+      push @candidates, ard_lib_property($ard,'name'). ".h";
+      }
     }
   
   foreach my $fname (@candidates) {
@@ -1478,12 +1488,15 @@ my %commands = (
         ''=>'--- ardlibdir # Make the xod library from an arduinio ide lib',
         'github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
         'project' => 'Create a xod project, not a library',
+        'dot-h:s' => 'Name of the .h file, default is to deduce it',
         'help|h|H'=>'this',
         ],
     # Parts
     library => [
         ''=>'--- ardlibdir # Make the xod library dir/properties',
         'version:s' => 'Use this version for the project/library (0.0.0), default is 1.0.0',
+        'dot-h:s' => 'Name of the .h file, default is to deduce it',
+        'project' => 'Create a xod project, not a library',
         'xoddir:s' => 'Create library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'author' => 'Use this as the xod-author, default is ./.config[xod][username]',
         'dryrun|n' => 'Don\'t make changes',
@@ -1492,6 +1505,7 @@ my %commands = (
     constructor => [ 
         ''=>'--- ardlibdir # Make the constructor nodes',
         'project' => 'Create a xod project, not a library',
+        'dot-h:s' => 'Name of the .h file, default is to deduce it',
         'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
         'help|h|H'=>'this',
@@ -1499,6 +1513,7 @@ my %commands = (
     methods => [ 
         ''=>'--- ardlibdir # Make the public method nodes',
         'project' => 'Create a xod project, not a library',
+        'dot-h:s' => 'Name of the .h file, default is to deduce it',
         'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'only:s' => 'only make this exact method name',
         'limit:n' => 'only make this many methods',
@@ -1507,6 +1522,7 @@ my %commands = (
     static_methods => [ 
         ''=>'--- ardlibdir # Make the public static method nodes',
         'project' => 'Create a xod project, not a library',
+        'dot-h:s' => 'Name of the .h file, default is to deduce it',
         'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'only:s' => 'only make this exact method name',
         'limit:n' => 'only make this many methods',
@@ -1515,6 +1531,7 @@ my %commands = (
     specialize => [
         ''=>'--- ardlibdir # create specialization patches',
         'project' => 'Create a xod project, not a library',
+        'dot-h:s' => 'Name of the .h file, default is to deduce it',
         'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'limit:n' => 'only make this many properties',
         'help|h|H'=>'this',
@@ -1522,6 +1539,7 @@ my %commands = (
     properties => [ 
         ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public property nodes',
         'project' => 'Create a xod project, not a library',
+        'dot-h:s' => 'Name of the .h file, default is to deduce it',
         'limit:n' => 'only make this many properties',
         'help|h|H'=>'this',
         ],
@@ -1535,6 +1553,7 @@ my %commands = (
       ],
     ast => [ 
       '' => '--- ardlibdir # dump the ast',
+        'dot-h:s' => 'Name of the .h file, default is to deduce it',
       'help|h|H'=>'this',
       ],
     pack => [

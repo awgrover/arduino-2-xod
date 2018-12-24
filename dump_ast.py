@@ -9,10 +9,104 @@ import sys
 import clang.cindex
 # useful to browse /usr/local/lib/python2.7/dist-packages/clang/cindex.py to figure out ast objects
 # e.g. node.result_type.text.__class__.__name__ == Type
-import inspect
 import json
+import platform
+import os
+import re
+import glob
+import subprocess
+from pprint import pprint
 
-libclang='/usr/lib/llvm-3.8/lib/libclang.so.1'
+def libclang():
+    # path to libclang for cindex
+    # Make an effort to be cross-os (ha)
+
+    rez = False
+
+    # first, .config obviously
+    if os.path.isfile('.config'):
+        config = json.load( open('.config', 'r') )
+        if 'path' in config:
+            if 'libclang' in config['path']:
+                rez = config['path']['libclang']
+                print "# config " + rez
+    
+    if not rez:
+        # clang -print-search-dirs might know
+        try:
+            paths = subprocess.check_output("clang -print-search-dirs", shell=True).split("\n")
+            paths = filter(lambda p: p != '', paths)
+        except subprocess.CalledProcessError as e:
+            paths = []
+        paths = filter(lambda p: re.search(r'^libraries:',p), paths)
+        if len(paths) > 0:
+            paths = paths[0]
+            paths = re.sub( r'^libraries: =', '', paths)
+            paths = paths.split(':')
+            print "#cl  "; pprint(list(paths))
+            paths = list(glob.glob(p + "/libclang*.so*" ) for p in paths)
+            paths = [item for sublist in paths for item in sublist] # flatten
+            paths = list( os.path.realpath(p) for p in paths) # lots of relative .. typically
+            # use 1st that is found
+            print "#  "; pprint(list(paths))
+            if len(paths) > 0:
+                rez = paths[0]
+                print "# clang"
+
+    if not rez:
+        # llvm-config might know
+        try:
+            paths = subprocess.check_output("llvm-config --libdir", shell=True).split("\n")
+            paths = filter(lambda p: p != '', paths)
+        except subprocess.CalledProcessError as e:
+            paths = []
+        if (not rez) and len(paths) > 0:
+            paths = list(glob.glob(p + "/libclang*.so*" ) for p in paths)
+            paths = [item for sublist in paths for item in sublist]
+            paths.sort( key = lambda p: len(p.split("/"))) # shortest "depth"
+            print "#  "; pprint(list(paths))
+            if len(paths) > 0:
+                rez = paths[0]
+                print "# llvm-config"
+
+    # FIXME: put finding for windows  here
+
+    if (not rez) and platform.system() in ('Linux', 'Darwin', 'FreeBSD', 'posix'): # unixy things
+        if os.system("which dpkg-query >/dev/stderr"):
+            paths = os.popen("dpkg-query -S 'libclang*.so*' | awk '{print $2}'").read().split("\n")
+            paths = filter(lambda p: p != '', paths)
+            print "#  "; pprint(paths)
+            # not a link is probably better
+            better_paths = filter(lambda p: not os.path.islink(p), paths)
+            if better_paths == 0:
+                # nothing that is not a link? oh well
+                better_paths = paths
+            # less deep is probably better
+            paths.sort( key = lambda p: len(p.split("/"))) # shortest "depth"
+            if len(paths) > 0:
+                rez = paths[0]
+            print "# from dkpkg"
+
+        if not rez:
+            # try `locate`
+            paths = os.popen("locate -b 'libclang.so*'").read().split("\n")
+            paths = filter(lambda p: p != '', paths)
+            if len(paths) > 0:
+                # /usr/lib is likely better on linux anyway
+                better_paths = filter(lambda p: re.search(r'^/usr/lib', p), paths)
+                if better_paths == 0:
+                    # no /usr/lib? oh well
+                    better_paths = paths
+                # less deep is probably better
+                paths.sort( key = lambda p: len(p.split("/"))) # shortest "depth"
+                if len(paths) > 0:
+                    rez = paths[0]
+                print "# from locate"
+        
+    if not rez:
+        raise Exception('Couldn\'t find a libclang library, add "path" : { "libclang" : "some/where" } to .config file')
+    print "Using libclang "+rez
+    return rez
 
 def get_children(node):
     # return (c for c in node.get_children() if c.location.file.name == sys.argv[1])
@@ -88,7 +182,7 @@ if len(sys.argv) != 2:
     print >> sys.stderr, ("Usage: dump_ast.py [header file name]")
     sys.exit()
 
-clang.cindex.Config.set_library_file(libclang)
+clang.cindex.Config.set_library_file(libclang())
 index = clang.cindex.Index.create()
 # translation_unit = index.parse(sys.argv[1], ['-x', 'c++', '-std=c++11', '-D__CODE_GENERATOR__'])
 # attempt to #include ard stuff: causes memory error
