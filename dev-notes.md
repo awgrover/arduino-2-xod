@@ -3,10 +3,11 @@
 - [ ] for args of `&` type, treat as return type and emit
 - [x] look at enums, arg type is just int
 -- [ ] make a patch with the descrption having all values?
--- [ ] using an input of type enum requires a cast
--- static_cast<Test>
-    is it an enum? param type=>'TypeKind.ENUM:4'
-    what enum type is it?
+- [ ] argument name collisions
+    my default names: 'object', etc. can collide w/real args
+    rename real args I guess?
+    cf visi-genie write-object
+    
 - [ ] rf24 has cdoc, can we extract as desc?
 - [ ] update readme, 
 -- put neopixel in own

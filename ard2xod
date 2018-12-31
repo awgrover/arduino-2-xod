@@ -7,7 +7,7 @@ use Carp; $SIG{__DIE__} = sub { Carp::confess @_ };
 use Data::Dumper;
 use File::Basename qw(basename dirname);
 use JSON;
-use Text::Template; # it was there
+use Template;
 
 use lib 'bin';
 use awgrover::Getopt;
@@ -22,6 +22,9 @@ $BUG{'type_name_dash'} = 1; # the patch-name is supposed to be the custom type n
 my $XODRowSize = 102; # seems to be every 102 pixels
 my $XODColSize = 34; # seems to be
 
+# variables used in the body of methods/constructor, to detect argument collisions
+my @ReservedVariableNames = qw(object dev trigger state done);
+
 BEGIN {
 if ($ENV{'DEBUG'}) {
 sub debug {
@@ -34,6 +37,171 @@ else {
   sub debug {}
   }
 }
+
+package Arduino;
+use Class::MethodMaker 
+    [ 
+    new => [ qw( -hash new )],
+    scalar => [ 
+      'dir',  # root directory of arduino library
+      'known_dot_h', # override the assumption of library.properties['name'].h
+      'known_github_url', # override the assumption of library.properties
+      '_dot_h', # cached location
+      '_dot_h_ast', # cached ast
+      '_class_ast', # cached ast of the class
+      '_github_url', # cached
+      '_lib_property', # cached library.properties
+      ],
+    ];
+
+  #use overload fallback => 1, '""' => sub { "<arduino ".$_[0]->dir.">" };
+
+  use File::Basename qw(basename dirname);
+  use JSON;
+
+  sub expected {
+    # a complete arduino library directory?
+    my $self=shift;
+
+    if (!-d $self->dir ) {
+      say STDERR "# Expected an arduino library with a .h in @{[$self->dir]}";
+      exit 1;
+      }
+
+    $self->dot_h; # checks
+    }
+
+  sub dot_h_basename {
+    my $self=shift;
+    basename( $self->dot_h );
+    }
+
+  sub dot_h {
+    my $self = shift;
+    # Often it's the $directory.h
+    # or the library.properties['name'] .h
+    # But, you may need to --dot-h $something
+    # caches
+
+    return $self->_dot_h if $self->_dot_h;
+
+    my @candidates;
+
+    if ($self->known_dot_h) {
+      push @candidates, $self->known_dot_h;
+      }
+
+    else {
+      # the directory name is often the .h name
+      push @candidates, basename($self->dir) . ".h";
+
+      if (-e $self->dir."/library.properties") {
+        push @candidates, $self->lib_property('name'). ".h";
+        }
+      }
+    
+    foreach my $fname (@candidates) {
+      my $path = $self->dir."/$fname";
+
+      if (! -e $path && -d $self->dir."/src") {
+        # maybe src/...
+        $path = $self->dir."/src/$fname";
+        }
+      $self->_dot_h( $path );
+      return $path if -e $path
+      }
+
+    die "Expected the .h in ".$self->dir." or ".$self->dir."/src, for '".join("', '",@candidates)."'";
+    }
+
+  sub dot_h_ast {
+    my $self=shift;
+    return $self->_dot_h_ast if $self->_dot_h_ast;
+
+    my $ast = `python ./dump_ast.py "@{[$self->dot_h]}"`;
+    exit(1) if $?;
+    $self->_dot_h_ast( decode_json($ast) );
+    die $@ if $@;
+    $self->_dot_h_ast;
+    }
+
+  sub class_ast {
+    my $self=shift;
+
+    return $self->_class_ast if $self->_class_ast;
+
+    # We are always working on the first class...
+    $self->_class_ast( ::find_first(0, $self->dot_h_ast, \&::p_toplevel, ::p_node_type('CLASS_DECL')) );
+    die "No class" if !$self->_class_ast;
+
+    $self->_class_ast;
+    }
+
+  sub class_name {
+    my $self=shift;
+    $self->class_ast->{'text'} or die("No {'text'} in the class node");
+    }
+
+  sub github_url {
+    my $self=shift;
+    return $self->_github_url if $self->_github_url;
+
+    my $rez = $self->known_github_url || $self->lib_property('github-url');
+
+    warn "The github url was in library.properties: ".$self->lib_property('github-url') if !$self->known_github_url && $rez;
+    $self->_github_url( $rez );
+    }
+
+  sub lib_property {
+    # get the value from the library.properties & library.json
+    # Treats library.json as secondard information, merges
+    # Has a few magic keys
+    my $self=shift;
+
+    my ($property) = @_;
+
+    my $cached ||= do {
+        my %p;
+
+        if (-e "@{[$self->dir]}/library.json") {
+          # let library.properties overwrite later
+          %p =  %{ decode_json( `cat @{[$self->dir]}/library.json` ) };
+          }
+
+        my $ph = IO::File->new( "@{[$self->dir]}/library.properties", 'r') or die($!);
+        while (<$ph>) {
+            my ($key,$value) = /^([^=]+)=(.*)/;
+            $p{$key} = $value;
+            }
+        \%p;
+        };
+    $self->_lib_property($cached);
+
+    # magic keys
+    given ($property) {
+      when ('github-url') {
+        my $u = $self->_lib_property->{'repository'}->{'url'};
+        if ($u) {
+          $u =~ s/\.git$//; # trailing .git
+          }
+        else {
+          $u = $self->_lib_property->{'url'}; # defined as "website" so may not be git
+          }
+        if ($u !~ /\/\/github.com\//) {
+          die "The github-url from library.json['respository']['url'] || library.properties['url'] is not on github, and won't work with XOD version ~0.25, use --github-url";
+          }
+        $u;
+        }
+      default {
+        $self->_lib_property->{$property};
+        }
+      }
+
+    }
+
+### end Arduino class
+
+package main;
 
 sub xod_projects {
   # find the directory that contains the XOD projects
@@ -134,20 +302,20 @@ my %danger_types; @danger_types{
 
 # A .cpp for constructors looks like this:
 my $cpp_constructor = <<'EOS'; # use {% ... %} interpolations
-//-- constructor {% $arduino{'class_name'} %}({% our @args = map {$_->{'name'}} @{$constructor{'arguments'} }; join(", ", @args); %})
-#pragma XOD require "{% $arduino{'github_url'} %}"
+//-- constructor {% arduino.class_name %}({% constructor.argument_names.join(", ") %})
+#pragma XOD require "{% arduino.github_url %}"
 
 // Include C++ library:
 {{#global}}
-#include <{% $arduino{'.h'} %}>
+#include <{% arduino.dot_h_basename %}>
 {{/global}}
 
-// Our namespace should be: {% $cpp{'cons_namespace'} %}
+// Our namespace should be: {% cpp.cons_namespace %}
 // Reserve the space for the object.
 struct State {
-  uint8_t mem[sizeof({% $arduino{'class_name'} %})];
+  uint8_t mem[sizeof({% arduino.class_name %})];
   };
-using Type = {% $arduino{'class_name'} %}*; // 'Type' is assumed by xod code-generator
+using Type = {% arduino.class_name %}*; // 'Type' is assumed by xod code-generator
 
 {{ GENERATED_CODE }}
 
@@ -158,21 +326,21 @@ void evaluate(Context ctx) {
   auto state = getState(ctx);
 
   // var names are valid c++ because we got them from the arglist of the c++ constructor
-  {% 
-  foreach my $arg ( @{$constructor{'arguments'} } ) {
-    $OUT .= "auto ".$arg->{'name'}." = static_cast<".$arg->{'type_name'}."> (getValue<input_".$arg->{'name'}.">(ctx)); // ".$arg->{'type_name'} ."\n  ";
+  {% FOREACH arg = $constructor.arguments %}
+    auto {% arg.name %} = static_cast<{% arg.type_name %}> (getValue<input_{% arg.name %}>(ctx)); // {% arg.type_name %}
   } 
-  %}
+  {% END %}
 
-  Type object = new (state->mem) {% $arduino{'class_name'} %}( {% join ", ", @args; %} );
+  Type object = new (state->mem) {% arduino.class_name %}( {% constructor.argument_names.join(", ") %} );
 
-  emitValue<output_{% $cpp{'cons_patch_name'} %}>(ctx, object);
+  emitValue<output_{% cpp.cons_patch_name %}>(ctx, object);
   emitValue<output_done>(ctx, object);
 }
 EOS
 
 my $cpp_method = <<'EOS';
-//-- {% $method{'type'} %} {% $arduino{'class_name'} %}::{% $method{'name'} %}({% our @args = map {$_->{'name'}} @{$method{'arguments'} }; join(", ", @args); %})
+{% say STDERR "## defntemp ",Dumper($arduino); use Data::Dumper; ''%}
+//-- {% $method{'type'} %} {% $arduino->class_name %}::{% $method{'name'} %}({% our @args = map {$_->{'name'}} @{$method{'arguments'} }; join(", ", @args); %})
 // Our constructor namespace should be: {% $cpp{'cons_namespace'} %}
 struct State {
   // not used
@@ -192,7 +360,7 @@ void evaluate(Context ctx) {
   } 
   %}
 
-  auto object  = getValue<input_{% $xod{'cons_patch_name'} %}>(ctx); // {% $arduino{'class_name'} %}
+  auto object  = getValue<input_{% $xod{'cons_patch_name'} %}>(ctx); // {% $arduino->class_name %}
 
   {% ($method{'type'} ne 'void') ? 'auto rez = ' : '' %}object->{% $method{'name'} %}( {% join(", ", @args) %} ); // {%
     $method{'type'} ne 'void' 
@@ -214,7 +382,7 @@ void evaluate(Context ctx) {
 EOS
 
 my $cpp_static_method = <<'EOS';
-//-- {% $method{'type'} %} {% $arduino{'class_name'} %}::{% $method{'name'} %}({% our @args = map {$_->{'name'}} @{$method{'arguments'} }; join(", ", @args); %})
+//-- {% $method{'type'} %} {% $arduino->class_name-> %}::{% $method{'name'} %}({% our @args = map {$_->{'name'}} @{$method{'arguments'} }; join(", ", @args); %})
 // Our constructor namespace should be: {% $cpp{'cons_namespace'} %}
 struct State {
   // not used
@@ -246,7 +414,7 @@ void evaluate(Context ctx) {
   } 
   %}
 
-  {% ($method{'type'} ne 'void') ? 'auto rez = ' : '' %}{% $arduino{'class_name'} %}::{% $method{'name'} %}( {% join(", ", @args) %} ); // {%
+  {% ($method{'type'} ne 'void') ? 'auto rez = ' : '' %}{% $arduino->class_name %}::{% $method{'name'} %}( {% join(", ", @args) %} ); // {%
     $method{'type'} ne 'void' 
     ? $method{'type'} 
     : 'void'
@@ -261,7 +429,7 @@ void evaluate(Context ctx) {
 EOS
 
 my $cpp_property = <<'EOS';
-//-- {% $property{'type'} %} {% $arduino{'class_name'} %}::{% $property{'name'} %} getter/setter
+//-- {% $property{'type'} %} {% $arduino->class_name %}::{% $property{'name'} %} getter/setter
 // Our constructor namespace should be: {% $cpp{'cons_namespace'} %}
 struct State {
   // not used
@@ -276,7 +444,7 @@ void evaluate(Context ctx) {
   // Set the value if incoming value is dirty (and emit it)
   if ( isInputDirty<input_val> ) {
     auto value  = getValue<input_val>(ctx); // {% $property{'type'} %}
-    auto object  = getValue<input_{% $xod{'cons_patch_name'} %}>(ctx); // {% $arduino{'class_name'} %}
+    auto object  = getValue<input_{% $xod{'cons_patch_name'} %}>(ctx); // {% $arduino->class_name %}
     object->{% $property{'name'} %} = value;
 
     emitValue<output_dev>(ctx, object);
@@ -286,7 +454,7 @@ void evaluate(Context ctx) {
 
   // Emit the value if object is dirty ? or by pulse?
   else if ( isInputDirty<input_{% $xod{'cons_patch_name'} %}> ) {
-    auto object  = getValue<input_{% $xod{'cons_patch_name'} %}>(ctx); // {% $arduino{'class_name'} %}
+    auto object  = getValue<input_{% $xod{'cons_patch_name'} %}>(ctx); // {% $arduino->class_name %}
     auto value = object->{% $property{'name'} %};
 
     emitValue<output_dev>(ctx, object);
@@ -303,9 +471,10 @@ EOS
 
 sub do_make {
   # --- ardlibdir
-  my ($ard) = @ARGV;
-  say "# Start library for $ard";
-  my $xod = _do_library($ARGV[0]);
+  my ($arddir) = @ARGV;
+  my $ard = arduino_new($arddir);
+  say "# Start library for $arddir";
+  my $xod = _do_library($ard);
   say "# Constructors for $ard, @ $xod";
   do_constructor();
   say "# Methods for $ard, @ $xod";
@@ -325,7 +494,6 @@ sub add_warnings {
   my ($ard) = @_;
   my $xod = xod_lib_dir($ard);
 
-  # my $defn = definitions($ard);
   my $xodp = decode_json( `cat $xod/readme/patch.xodp` );
 
   $xodp->{'comments'}->[0]->{'content'} .= "\n\nWarnings:\n* ".join("\n* ",@warnings);
@@ -333,88 +501,6 @@ sub add_warnings {
   write_patch("$xod/readme/patch.xodp", $xodp);
 
   }
-
-sub ard_dot_h {
-  state %ard_dot_h;
-  # Often it's the $directory.h
-  # or the library.properties['name'] .h
-  # But, you may need to --dot-h $soemthing
-
-  my ($ard) = @_;
-  return $ard_dot_h{$ard} if $ard_dot_h{$ard};
-
-  my @candidates;
-
-  if ($gSwitches->{'dot-h'}) {
-    push @candidates, $gSwitches->{'dot-h'};
-    }
-
-  else {
-    # the directory name is often the .h name
-    push @candidates, basename($ard) . ".h";
-
-    if (-e "$ard/library.properties") {
-      push @candidates, ard_lib_property($ard,'name'). ".h";
-      }
-    }
-  
-  foreach my $fname (@candidates) {
-    my $path = "$ard/$fname";
-
-    if (! -e $path && -d "$ard/src") {
-      # maybe src/...
-      $path = "$ard/src/$fname";
-      }
-    $ard_dot_h{$ard} = $path;
-    return $path if -e $path
-    }
-
-  die "Expected the .h in $ard or $ard/src, for '".join("', '",@candidates)."'";
-  }
-
-sub ard_lib_property {
-    # get the value from the library.properties & library.json
-    # Treats library.json as secondard information, merges
-    # Has a few magic keys
-
-    my ($ard, $property) = @_;
-    state %properties;
-
-    $properties{ $ard } ||= do {
-        my %p;
-
-        if (-e "$ard/library.json") {
-          # let library.properties overwrite later
-          %p =  %{ decode_json( `cat $ard/library.json` ) };
-          }
-
-        my $ph = IO::File->new($ard . "/library.properties", 'r') or die($!);
-        while (<$ph>) {
-            my ($key,$value) = /^([^=]+)=(.*)/;
-            $p{$key} = $value;
-            }
-        \%p;
-        };
-
-    # magic keys
-    given ($property) {
-      when ('github-url') {
-        my $u = $properties{ $ard }->{'repository'}->{'url'};
-        if ($u) {
-          $u =~ s/\.git$//; # trailing .git
-          }
-        else {
-          $u = $properties{ $ard }->{'url'}; # defined as "website" so may not be git
-          }
-        if ($u !~ /\/\/github.com\//) {
-          die "The github-url from library.json['respository']['url'] || library.properties['url'] is not on github, and won't work with XOD version ~0.25, use --github-url";
-          }
-        return $u;
-        }
-      }
-
-    $properties{ $ard }->{$property};
-    }
 
 sub xod2xodball {
   # simple name derivation: just the leaf
@@ -488,6 +574,11 @@ sub cpp_safe_token {
   }
 
 sub foreach_method {
+  # given an ast whose top is a list of methods (or constructors)
+  # and, the definitions()
+  # call the block with ($ct, {infoaboutmethod}, \@inputs)
+  # where method is: { name=> , type=>$return_type, type_name=> }
+  # where inputs are a list of [ $input_name, $xod_type, $type_name ];
   my ($defn, $methods_ast, $block) = @_;
   my $ct = 0;
   say "Count of nodes: ".@$methods_ast;
@@ -502,9 +593,16 @@ sub foreach_method {
     my @inputs; # [ $name, $xodtypename, $actual-spelled-type ]
     my @saw = $method->{'text'} . "("; # for error message
     #say "  --- args...";
+    my $parm_ct = 0;
     foreach my $parm (@$args_ast) {
+      $parm_ct += 1;
       my $input_name = $parm->{'text'};
       $input_name = cpp_safe_token($input_name);
+
+      # rename for "reserved" names
+      if (grep {$_ eq $input_name} @ReservedVariableNames || $_ eq $defn->{'cpp'}->{'cons_patch_name'} || $_ eq $defn->{'xod'}->{'cons_patch_name'}) {
+        $input_name .= $parm_ct;
+        }
 
       my $full_type = $parm->{'type'}; # unparsed, sad. "int *", "bool ()"
       push @saw, "$full_type $input_name, ";
@@ -538,6 +636,7 @@ sub foreach_method {
 
     debug sub { "Inputs: ",Dumper(\@inputs); };
     #say "method ".$method->{'text'}."(",join(", ", map {$_->[0]} @inputs),")";
+
     &$block( $ct, { name=> $method->{'text'}, type=>($method->{'return_type'} || $method->{'type'}), type_name=>$method->{'type_name'} }, \@inputs );
 
     $ct += 1;
@@ -553,7 +652,7 @@ sub to_xod_type {
   my $xod_type;
 
   # for return, we can't assume it's "this", so return it possibly as duplicate
-  if ( ($base_type eq 'TypeKind.LVALUEREFERENCE:1') && $parm->{'type_name'} eq ($defn->{'arduino'}->{'class_name'} . ' &') ) {
+  if ( ($base_type eq 'TypeKind.LVALUEREFERENCE:1') && $parm->{'type_name'} eq ($defn->{'arduino'}->class_name . ' &') ) {
     # $Class &
     #say "REF";
     $xod_type = "@/input-".$defn->{'xod'}->{'cons_patch_name'};
@@ -582,7 +681,7 @@ sub do_ast {
   # just dump the ast
   # --- $ardlib
   my ($ard) = @ARGV;
-  my $dot_h = ard_dot_h($ard);
+  my $dot_h = $ard->dot_h;
   system("python", "./dump_ast.py", $dot_h);
   exit($?);
   }
@@ -643,12 +742,12 @@ sub do_properties {
 
 sub definitions {
   # common values we need from $ard/$xod stuff
-  # returns $ast (for first class), $defn
+  # returns $defn
   my ($ard, $xod, $xod_is_new) = @_;
   state %cache;
 
-  if ($cache{$ard}) {
-    return ( $cache{$ard}->[0], %{ $cache{$ard}->[1]} );
+  if ($cache{$ard->dir}) {
+    return %{ $cache{$ard->dir} };
     }
 
   my $libname;
@@ -662,37 +761,18 @@ sub definitions {
     exit 1;
     }
 
-  my $dot_h = ard_dot_h($ard);
-  if (!-d $ard || !-e $dot_h) {
-    say STDERR "# Expected an arduino library xwith a .h in $ard";
-    exit 1;
-    }
-
-  my $ast = `python ./dump_ast.py "$dot_h"`;
-  exit(1) if $?;
-
-  $ast = decode_json($ast);
-  die $@ if $@;
- 
-  # We are always working on the first class...
-  # FIXME: skip statics?
-  my $class_ast = find_first(0, $ast, \&p_toplevel, p_node_type('CLASS_DECL'));
-  die "No class" if !$class_ast;
+  my $dot_h = $ard->dot_h;
 
   my %defn = (
     # values we need, categorized to reduce confusion
     # usable by the makers(), and the template
-    arduino => {}, # strings from arduino world
+    arduino => $ard, # from arduino world
     cpp => {}, # tokens that are for cpp
     xod => {}, # tokens that are for xod
     );
-  $defn{'arduino'}->{'.h'} = basename($dot_h);
-  $defn{'arduino'}->{'class_name'} = $class_ast->{'text'} or die("No {'text'} in the class node"); # WAS $class_name
-  $defn{'arduino'}->{'github_url'} = $gSwitches->{'github-url'} || ard_lib_property($ard,'github-url');
-  warn "The github url was in library.properties: ".ard_lib_property($ard,'github-url') if !$gSwitches->{'github-url'} && ard_lib_property($ard,'github-url');
 
   $defn{'xod'}->{'libname'} = $libname;
-  $defn{'xod'}->{'cons_patch_name'} = lc( $defn{'arduino'}->{'class_name'} ); # base typename & patchname # WAS $cons_patch_name
+  $defn{'xod'}->{'cons_patch_name'} = lc( $ard->class_name ); # base typename & patchname # WAS $cons_patch_name
   $defn{'xod'}->{'cons_patch_name'} =~ s/_/-/g; # xod wants -
   if ($BUG{'type_name_dash'} ) { $defn{'xod'}->{'cons_patch_name'} =~ s/-//g; }; # remove -
   
@@ -709,8 +789,8 @@ sub definitions {
   $defn{'cpp'}->{'cons_namespace'} = cpp_safe_token( $defn{'cpp'}->{'cons_namespace'} );
   #say "## defn: ",Dumper(\%defn);
 
-  $cache{$ard} = [ $class_ast, \%defn ];
-  return ($class_ast, %defn);
+  $cache{$ard->dir} = \%defn;
+  return %defn;
   }
 
 sub make_patches {
@@ -719,7 +799,9 @@ sub make_patches {
 
   my ($what, $ard, $xod, $template, $description_maker, $xodp_maker, $template_data, $ast_predicates) = @_;
   
-  my ($class_ast, %defn) = definitions( $ard, $xod );
+  my %defn = definitions( $ard, $xod );
+      say STDERR "## defn ".dump_shallow(\%defn);
+  my $class_ast = $defn{'arduino'}->class_ast;
 
   # What things are of interest to this patch maker? the @$ast_predicates
   my $methods_ast = find_all(0, $class_ast, @$ast_predicates);
@@ -787,7 +869,8 @@ sub do_static_methods {
   # Make public static methods patches
   # --- $ardlib
 
-  my ($ard) = @ARGV;
+  my ($arddir) = @ARGV;
+  my $ard = arduino_new($arddir);
   my $xod = xod_lib_dir($ard);
   
   my $made_ct = make_patches(
@@ -840,7 +923,7 @@ sub do_static_methods {
     # template-data
     sub {
       my ($defn, $method, $args) = @_;
-      die "Need github_url from --gihub_url option, or from arduino library.properties['url']" if !$defn->{'arduino'}->{'github_url'};
+      die "Need github_url from --gihub_url option, or from arduino library.properties['url']" if !$defn->{'arduino'}->github_url;
 
       return { method => {
         name => $method->{'name'},
@@ -861,7 +944,8 @@ sub do_methods {
   # Make public methods patches
   # --- $ardlib
 
-  my ($ard) = @ARGV;
+  my ($arddir) = @ARGV;
+  my $ard = arduino_new($arddir);
   my $xod = xod_lib_dir($ard);
   
   my $made_ct = make_patches(
@@ -871,7 +955,7 @@ sub do_methods {
 
     # description
     sub { my ($defn, $method_node, $args, $ct) = @_; # unused
-        ''; # can we do better? comments? doc? line-number?
+      ''; # can we do better? comments? doc? line-number?
       },
 
     # %xodp
@@ -926,7 +1010,7 @@ sub do_methods {
     # template-data
     sub {
       my ($defn, $method, $args) = @_;
-      die "Need github_url from --gihub_url option, or from arduino library.properties['url']" if !$defn->{'arduino'}->{'github_url'};
+      die "Need github_url from --gihub_url option, or from arduino library.properties['url']" if !$defn->{'arduino'}->github_url;
 
       return { method => {
         name => $method->{'name'},
@@ -947,7 +1031,8 @@ sub do_constructor {
   # Make a constructor patch
   # --- $ardlib
 
-  my ($ard) = @ARGV;
+  my ($arddir) = @ARGV;
+  my $ard = arduino_new($arddir);
   my $xod = xod_lib_dir($ard);
   
   my $made_ct = make_patches(
@@ -959,8 +1044,8 @@ sub do_constructor {
       # FIXME: also README?
       join "\n", (
         "constructor", # can we do better? comments? doc?
-        $defn->{'arduino'}->{'github_url'},
-        "Arduino: ".$defn->{'arduino'}->{'class_name'},
+        $defn->{'arduino'}->github_url,
+        "Arduino: ".$ard->class_name,
         "XOD: ".$defn->{'xod'}->{'input_type_name'},
         "cpp postfix: ".$defn->{'cpp'}->{'cons_patch_name'},
       );
@@ -993,9 +1078,10 @@ sub do_constructor {
     # template-data
     sub {
       my ($defn, $constructor_ast, $args) = @_;
-      die "Need github_url from --gihub_url option, or from arduino library.properties['url']" if !$defn->{'arduino'}->{'github_url'};
+      die "Need github_url from --gihub_url option, or from arduino library.properties['url']" if !$defn->{'arduino'}->github_url;
 
       return { constructor => {
+        argument_names => [ map { $_[0] } @$args],
         arguments => [
           map { { name => $_->[0], type => $_->[1], type_name => $_->[2] } } @$args # FIXME: use actual type
           ],
@@ -1013,13 +1099,13 @@ sub write_patch_cpp {
 
   #say "Data: ",Dumper($data);
 
-  my $template = Text::Template->new(
-    TYPE => 'STRING', 
-    SOURCE => $template_str,
-    DELIMITERS => ['{%', '%}']
+  my $template = Template->new(
+    START_TAG => '{%',
+    END_TAG => '%}',
     );
 
-  my $cpp = $template->fill_in(HASH => $data);
+  my $cpp;
+  $template->process( \$template_str, $data, \$cpp) || die( $template->error );
   my $fh = IO::File->new( $fname, 'w') or die($!);
   print $fh $cpp;
   $fh->close;
@@ -1204,12 +1290,12 @@ sub xod_lib_dir {
   # Derive the xod-lib-name from the arduino-lib-name
   # --xoddir forces it to a specific dir name
   # --project forces it to a project instead of library
-  my ($ardlib) = @_;
+  my ($ard) = @_;
   # lib-dir: $xod/__lib__/$user/$ardlibname-ll
 
   return $gSwitches->{'xoddir'} if $gSwitches->{'xoddir'};
 
-  my $lib_name = lc( ard_lib_property($ardlib,'name') );
+  my $lib_name = lc( $ard->lib_property('name') );
     $lib_name =~ s/[_ ]/-/g;
     $lib_name =~ s/[^0-9a-z\/-]//g;
  
@@ -1224,10 +1310,7 @@ sub xod_lib_dir {
 sub _do_library {
     my ($ard) = @_;
 
-    if (! -d $ard) {
-        say STDERR "# Expected an Arduino library directory, but it's not a directory: $ard";
-        exit 1;
-        }
+    $ard->expected;
 
     my $subdir = xod_lib_dir($ard);
     if (!$gSwitches->{'dryrun'}) {
@@ -1241,35 +1324,36 @@ sub _do_library {
       $username,
       $username ? "https://forum.xod.io/u/$username" : undef,
       config()->{'email'},
-      ard_lib_property($ard, 'author'), 
-      ard_lib_property($ard, 'maintainer')
+      $ard->lib_property('author'), 
+      $ard->lib_property('maintainer')
       );
 
-    my ($ast, %defn) = definitions( $ard, $subdir, 'xod-is-new' );
+    my %defn = definitions( $ard, $subdir, 'xod-is-new' );
+    my $ast = $ard->class_ast;
 
     my @description;
     # classname
     push @description, $defn{'xod'}->{'libname'};
 
-    push @description, ard_lib_property($ard, 'sentence');
-    push @description, ard_lib_property($ard, 'paragraph') if ard_lib_property($ard, 'sentence') ne ard_lib_property($ard, 'paragraph');
+    push @description, $ard->lib_property('sentence');
+    push @description, $ard->lib_property('paragraph') if $ard->lib_property('sentence') ne $ard->lib_property('paragraph');
 
     push @description,'';
     push @description, "Mechanically converted by ".($username ? "https://forum.xod.io/u/$username" : '')." using github.com:awgrover/arduino-2-xod from:";
 
     # $lib.name ($dirname) by $author. Version $version
-    my $ardlibname = ard_lib_property($ard,'name');
-    my $arddirname = basename($ard);
-    push @description, $ardlibname . ($ardlibname eq $arddirname ? '' : " ($arddirname)" ) . " by ".ard_lib_property($ard, 'author'). ". Version ".ard_lib_property($ard,'version');
+    my $ardlibname = $ard->lib_property('name');
+    my $arddirname = basename($ard->dir);
+    push @description, $ardlibname . ($ardlibname eq $arddirname ? '' : " ($arddirname)" ) . " by ".$ard->lib_property('author'). ". Version ".$ard->lib_property('version');
 
     # url
-    my $src_url = $gSwitches->{'github-url'} || ard_lib_property($ard,'github-url');
+    my $src_url = $ard->lib_property('github-url');
     if (!$src_url) {
-      warn "No url from --github-url nor $ard/library.properties[url]\n";
+      warn "No url from --github-url nor @{[$ard->dir]}/library.properties[url]\n";
       push @description, "Unknown source";
       }
     else {
-      push @description, $gSwitches->{'github-url'} || ard_lib_property($ard,'github-url');
+      push @description, $ard->lib_property('github-url');
       }
 
     my %xod_project = (
@@ -1315,14 +1399,22 @@ sub _do_library {
     $subdir;
     }
 
+sub arduino_new {
+  # with switches
+  my ($arddir) = @_;
+  Arduino->new( dir => $arddir, known_dot_h => $gSwitches->{'dot_h'}, known_github_url => $gSwitches->{'github-url'} );
+  }
+
 sub do_specialize {
   # gate, if, and so on
   # --- $ardlib
 
-  my ($ard) = @ARGV;
+  my ($arddir) = @ARGV;
+  my $ard = arduino_new($arddir);
   my $xod = xod_lib_dir($ard);
 
-  my ($ast, %defn) = definitions( $ard, $xod );
+  my %defn = definitions( $ard, $xod );
+  my $ast = $ard->class_ast;
 
   my $xod_builtin_lib = '/usr/lib/node_modules/xod-cli/__lib__';
 
@@ -1450,7 +1542,7 @@ sub do_capture {
   }
 
 sub do_github_fetch {
-  # givent the github like: https://github.com/prenticedavid/MCUFRIEND_kbv
+  # given the github like: https://github.com/prenticedavid/MCUFRIEND_kbv
   # add https://github.com/prenticedavid/MCUFRIEND_kbv/archive/master.zip
   # download, unzip
 
