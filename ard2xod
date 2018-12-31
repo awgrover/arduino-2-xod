@@ -1366,7 +1366,7 @@ sub _do_library {
 
     # FIXME: replace keys rather than overwriting all keys
     my $ph = $gSwitches->{'dryrun'} ? *STDOUT : IO::File->new("$subdir/project.xod",'w') or die($!);
-    print $ph JSON->new->pretty->encode(\%xod_project);
+    print $ph JSON->new->pretty->canonical->encode(\%xod_project);
 
     say "# Description:";
     say join("\n",@description);
