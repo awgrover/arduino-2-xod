@@ -13,6 +13,7 @@ use lib 'bin';
 use awgrover::Getopt;
 
 our $VERSION = 'v1.1.0';
+# 1.2.0 always make a project, not library
 # 1.1.0 first numbered version. Template::Toolkit, name collision
 # 1.0.0 10% less shitty: finds paths, config file, etc.
 
@@ -1276,7 +1277,7 @@ sub do_library {
 sub xod_lib_name {
   my ($ard) = @_;
   my $xod = xod_lib_dir($ard);
-  $gSwitches->{'project'} ? basename($xod) : basename(dirname($xod)) . "/" .basename($xod);
+  basename($xod);
   }
 
 sub xod_lib_dir {
@@ -1292,9 +1293,8 @@ sub xod_lib_dir {
     $lib_name =~ s/[_ ]/-/g;
     $lib_name =~ s/[^0-9a-z\/-]//g;
  
-  my $lib_dir = ($gSwitches->{'project'}) ? xod_projects : xod_libraries;
+  my $lib_dir = xod_projects;
 
-  $lib_dir .= "/" . ($gSwitches->{'author'} || config()->{'xod'}->{'username'}) if !$gSwitches->{'project'};
   $lib_dir .= "/" . $lib_name;
   $lib_dir .= '-ll';
   $lib_dir;
@@ -1379,16 +1379,6 @@ sub _do_library {
       );
     write_patch( "$subdir/readme/patch.xodp", \%xodp);
 
-    if (!$gSwitches->{'project'}) {
-      # link as project
-      my $project_name = basename($defn{'xod'}->{'libname'});
-      system('rm', xod_projects."/$project_name") if -e dirname(xod_libraries)."/$project_name";
-      my @cmd = ('ln','-s', $subdir, xod_projects."/$project_name");
-      unshift @cmd, 'echo' if $gSwitches->{'dryrun'};
-      system(@cmd) and die($!);
-      say "linked project $project_name to that lib";
-      }
-    
     $subdir;
     }
 
@@ -1598,7 +1588,6 @@ my %commands = (
     make => [
         ''=>'--- ardlibdir # Make the xod library from an arduinio ide lib',
         'github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
-        'project' => 'Create a xod project, not a library',
         'dot-h:s' => 'Name of the .h file, default is to deduce it',
         'help|h|H'=>'this',
         ],
@@ -1607,7 +1596,6 @@ my %commands = (
         ''=>'--- ardlibdir # Make the xod library dir/properties',
         'version:s' => 'Use this version for the project/library (0.0.0), default is 1.0.0',
         'dot-h:s' => 'Name of the .h file, default is to deduce it',
-        'project' => 'Create a xod project, not a library',
         'xoddir:s' => 'Create library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'author' => 'Use this as the xod-author, default is ./.config[xod][username]',
         'dryrun|n' => 'Don\'t make changes',
@@ -1615,7 +1603,6 @@ my %commands = (
         ],
     constructor => [ 
         ''=>'--- ardlibdir # Make the constructor nodes',
-        'project' => 'Create a xod project, not a library',
         'dot-h:s' => 'Name of the .h file, default is to deduce it',
         'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'github-url:s' => 'The github-url for the ard library (if not in the ard/library.properties',
@@ -1623,7 +1610,6 @@ my %commands = (
         ],
     methods => [ 
         ''=>'--- ardlibdir # Make the public method nodes',
-        'project' => 'Create a xod project, not a library',
         'dot-h:s' => 'Name of the .h file, default is to deduce it',
         'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'only:s' => 'only make this exact method name',
@@ -1632,7 +1618,6 @@ my %commands = (
         ],
     static_methods => [ 
         ''=>'--- ardlibdir # Make the public static method nodes',
-        'project' => 'Create a xod project, not a library',
         'dot-h:s' => 'Name of the .h file, default is to deduce it',
         'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'only:s' => 'only make this exact method name',
@@ -1641,7 +1626,6 @@ my %commands = (
         ],
     specialize => [
         ''=>'--- ardlibdir # create specialization patches',
-        'project' => 'Create a xod project, not a library',
         'dot-h:s' => 'Name of the .h file, default is to deduce it',
         'xoddir:s' => 'Update library here, default is $xod/__lib__/$xod.username/$ardlib.name-ll',
         'limit:n' => 'only make this many properties',
@@ -1649,7 +1633,6 @@ my %commands = (
         ],
     properties => [ 
         ''=>'--- ardlibdir xod-proj-dir # see output of "library" for xod-proj_dir # Make the public property nodes',
-        'project' => 'Create a xod project, not a library',
         'dot-h:s' => 'Name of the .h file, default is to deduce it',
         'limit:n' => 'only make this many properties',
         'help|h|H'=>'this',

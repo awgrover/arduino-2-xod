@@ -52,11 +52,11 @@ Setup:
   * checkout a git project from github
   * download the .zip from github and unzip it to a directory
   * use the Arduino IDE to "install" a library, find your Arduino libraries directory (`~/Arduino/libraries/` on my linux).
-* I recommend creating a XOD project from the Arduino library:
-    `./ard2xod make --project that/arduinolibrary/directory`
+* Generate the XOD project from the Arduino library:
+    `./ard2xod make that/arduinolibrary/directory`
   * The directory should have a `library.properties` file in it, and the `.h` (or `src/.h`).
   * Here's an example:
-    `./ard2xod make --project /home/awgrover/Arduino/libraries/Adafruit_NeoPixel`
+    `./ard2xod make /home/awgrover/Arduino/libraries/Adafruit_NeoPixel`
 * Watch the verbose output for obvious errors.
 * Open the project in XOD
   * Open the "readme" patch, check the warnings
@@ -66,9 +66,9 @@ Setup:
   * File an `issue` with this [github project](https://github.com/awgrover/arduino-2-xod), or send a message via [XOD Forum Messages](https://forum.xod.io/u/awgrover), or post on the [XOD Forum](https://forum.xod.io/) if there are problems.
 * Publish your work as a XOD library.
 
-# Generated Library (Using the Patches)
+# Generated Project (Using the Patches)
 
-The tool gets the library name from `library.properties`, and uses that as the XOD library name, and the name of the `.h` file. Then a `-ll` is appended to indicate "low-level". The name may not be the same as the Arduino library directory! e.g.: [ViSi-Genie-Arduino-Library](https://github.com/4dsystems/ViSi-Genie-Arduino-Library) has the `name` "genieArduino".
+The tool gets the project name from `library.properties`, and uses that as the XOD project name, and the name of the `.h` file. Then a `-ll` is appended to indicate "low-level". The name may not be the same as the Arduino library directory! e.g.: [ViSi-Genie-Arduino-Library](https://github.com/4dsystems/ViSi-Genie-Arduino-Library) has the `name` "genieArduino".
 
 The first class in the `.h` file is assumed to be the class of interest. It is used for the name of the constructors, and the `custom-type`.
 
@@ -82,7 +82,7 @@ I seem to think it is convenient for each method to emit the instance.
 
 # Goals
 
-Make libraries available faster, and without needing c++ expertise.
+Make XOD libraries available faster, and without needing c++ expertise.
 
 The conversion should generate a library that is obviously associated with the Arduino library. Then XOD users have a good chance of finding it, and knowing what it does. But, also indicate that it may be a bit rough. 
 
