@@ -12,6 +12,10 @@ use Template;
 use lib 'bin';
 use awgrover::Getopt;
 
+our $VERSION = 'v1.1.0';
+# 1.1.0 first numbered version. Template::Toolkit, name collision
+# 1.0.0 10% less shitty: finds paths, config file, etc.
+
 my $gSwitches;
 my @warnings; # accumulate warnings for readme
 
@@ -23,20 +27,15 @@ my $XODRowSize = 102; # seems to be every 102 pixels
 my $XODColSize = 34; # seems to be
 
 # variables used in the body of methods/constructor, to detect argument collisions
-my @ReservedVariableNames = qw(object dev trigger state done);
+my @ReservedVariableNames = qw(_object dev trigger _state done _rez);
 
-BEGIN {
-if ($ENV{'DEBUG'}) {
 sub debug {
-  # & or msg,msg,msg
-  my $from = (caller(0))[2];
-  say ("[$from] ",(ref($_[0]) eq 'CODE') ? $_[0]->() : join(" ",@_));
+  if ($ENV{'DEBUG'}) {
+    # & or msg,msg,msg
+    my $from = (caller(0))[2];
+    say ("[$from] ",(ref($_[0]) eq 'CODE') ? $_[0]->() : join(" ",@_));
+    }
   }
-  }
-else {
-  sub debug {}
-  }
-}
 
 package Arduino;
 use Class::MethodMaker 
@@ -323,7 +322,7 @@ void evaluate(Context ctx) {
   // It should be evaluated only once on the first (setup) transaction
   if (!isSettingUp()) return; // FIXME: relax this?
 
-  auto state = getState(ctx);
+  auto _state = getState(ctx);
 
   // var names are valid c++ because we got them from the arglist of the c++ constructor
   {% FOREACH arg = $constructor.arguments %}
@@ -331,7 +330,7 @@ void evaluate(Context ctx) {
   } 
   {% END %}
 
-  Type object = new (state->mem) {% arduino.class_name %}( {% constructor.argument_names.join(", ") %} );
+  Type object = new (_state->mem) {% arduino.class_name %}( {% constructor.argument_names.join(", ") %} );
 
   emitValue<output_{% cpp.cons_patch_name %}>(ctx, object);
   emitValue<output_done>(ctx, object);
@@ -339,9 +338,8 @@ void evaluate(Context ctx) {
 EOS
 
 my $cpp_method = <<'EOS';
-{% say STDERR "## defntemp ",Dumper($arduino); use Data::Dumper; ''%}
-//-- {% $method{'type'} %} {% $arduino->class_name %}::{% $method{'name'} %}({% our @args = map {$_->{'name'}} @{$method{'arguments'} }; join(", ", @args); %})
-// Our constructor namespace should be: {% $cpp{'cons_namespace'} %}
+//-- {% method.type %} {% arduino.class_name %}::{% method.name %}({% method.argument_names.join(", ") %})
+// Our constructor namespace should be: {% cpp.cons_namespace %}
 struct State {
   // not used
   };
@@ -354,29 +352,23 @@ void evaluate(Context ctx) {
   if ( !isInputDirty<input_trigger>(ctx) ) return;
 
   // var names are valid c++ because we got them from the arglist of the c++ method
-  {% 
-  foreach my $arg ( @{$method{'arguments'} } ) {
-    $OUT .= "auto ".$arg->{'name'}." = static_cast<".$arg->{'type_name'}."> (getValue<input_".$arg->{'name'}.">(ctx)); // ".$arg->{'type_name'} ."\n  ";
-  } 
-  %}
+  {%- FOREACH arg = method.arguments %}
+  auto {% arg.name %} = static_cast<{% arg.type_name %}> (getValue<input_{% arg.name %}>(ctx)); // {% arg.type_name %}
+  {%- END %}
 
-  auto object  = getValue<input_{% $xod{'cons_patch_name'} %}>(ctx); // {% $arduino->class_name %}
+  auto _object = getValue<input_{% xod.cons_patch_name %}>(ctx); // {% arduino.class_name %}
 
-  {% ($method{'type'} ne 'void') ? 'auto rez = ' : '' %}object->{% $method{'name'} %}( {% join(", ", @args) %} ); // {%
-    $method{'type'} ne 'void' 
-    ? $method{'type'} 
+  {% IF method.type != 'void' %}auto _rez = {% END %}_object->{% method.name %}( {% method.argument_names.join(", ") %} ); // {%
+    method.type != 'void' 
+    ? method.type
     : 'void'
   %}
   
-  emitValue<output_dev>(ctx, object); // for chaining
+  emitValue<output_dev>(ctx, _object); // convenience
 
-  {% if ($method{'type'} ne 'void') {
-    'emitValue<output_val>(ctx, rez); // '.  $method{'type'};
-    }
-  else { 
-    '';
-    }
-  %}
+  {%- IF method.type != 'void' %}
+  emitValue<output_val>(ctx, _rez); // {% method.type %}
+  {%- END %}
   emitValue<output_done>(ctx, 1); // pulse
 }
 EOS
@@ -414,13 +406,13 @@ void evaluate(Context ctx) {
   } 
   %}
 
-  {% ($method{'type'} ne 'void') ? 'auto rez = ' : '' %}{% $arduino->class_name %}::{% $method{'name'} %}( {% join(", ", @args) %} ); // {%
+  {% ($method{'type'} ne 'void') ? 'auto _rez = ' : '' %}{% $arduino->class_name %}::{% $method{'name'} %}( {% join(", ", @args) %} ); // {%
     $method{'type'} ne 'void' 
     ? $method{'type'} 
     : 'void'
   %}
   
-  emitValue<output_{% $method{'type'} ne 'void' ? 'val' : 'done' %}>(ctx, {% $method{'type'} ne 'void' ? 'rez' : 1 %}); // {% 
+  emitValue<output_{% $method{'type'} ne 'void' ? 'val' : 'done' %}>(ctx, {% $method{'type'} ne 'void' ? '_rez' : 1 %}); // {% 
     $method{'type'} ne 'void' 
     ? $method{'type'} 
     : 'pulse';
@@ -444,20 +436,20 @@ void evaluate(Context ctx) {
   // Set the value if incoming value is dirty (and emit it)
   if ( isInputDirty<input_val> ) {
     auto value  = getValue<input_val>(ctx); // {% $property{'type'} %}
-    auto object  = getValue<input_{% $xod{'cons_patch_name'} %}>(ctx); // {% $arduino->class_name %}
-    object->{% $property{'name'} %} = value;
+    auto _object  = getValue<input_{% $xod{'cons_patch_name'} %}>(ctx); // {% $arduino->class_name %}
+    _object->{% $property{'name'} %} = value;
 
-    emitValue<output_dev>(ctx, object);
+    emitValue<output_dev>(ctx, _object);
     emitValue<output_out>(ctx, value);
     emitValue<output_done>(ctx, value);
   }
 
   // Emit the value if object is dirty ? or by pulse?
   else if ( isInputDirty<input_{% $xod{'cons_patch_name'} %}> ) {
-    auto object  = getValue<input_{% $xod{'cons_patch_name'} %}>(ctx); // {% $arduino->class_name %}
-    auto value = object->{% $property{'name'} %};
+    auto _object  = getValue<input_{% $xod{'cons_patch_name'} %}>(ctx); // {% $arduino->class_name %}
+    auto value = _object->{% $property{'name'} %};
 
-    emitValue<output_dev>(ctx, object);
+    emitValue<output_dev>(ctx, _object);
     emitValue<output_out>(ctx, value );
     emitValue<output_done>(ctx, value);
     }
@@ -600,7 +592,7 @@ sub foreach_method {
       $input_name = cpp_safe_token($input_name);
 
       # rename for "reserved" names
-      if (grep {$_ eq $input_name} @ReservedVariableNames || $_ eq $defn->{'cpp'}->{'cons_patch_name'} || $_ eq $defn->{'xod'}->{'cons_patch_name'}) {
+      if ( (grep {$_ eq $input_name} @ReservedVariableNames) || $_ eq $defn->{'cpp'}->{'cons_patch_name'} || $_ eq $defn->{'xod'}->{'cons_patch_name'}) {
         $input_name .= $parm_ct;
         }
 
@@ -800,7 +792,6 @@ sub make_patches {
   my ($what, $ard, $xod, $template, $description_maker, $xodp_maker, $template_data, $ast_predicates) = @_;
   
   my %defn = definitions( $ard, $xod );
-      say STDERR "## defn ".dump_shallow(\%defn);
   my $class_ast = $defn{'arduino'}->class_ast;
 
   # What things are of interest to this patch maker? the @$ast_predicates
@@ -926,6 +917,7 @@ sub do_static_methods {
       die "Need github_url from --gihub_url option, or from arduino library.properties['url']" if !$defn->{'arduino'}->github_url;
 
       return { method => {
+        argument_names => [ map { $_->[0] } @$args ],
         name => $method->{'name'},
         type => ($method->{'type'} eq 'TypeKind.VOID:-2' ? 'void' : $method->{'type_name'}),
         arguments => [
@@ -1011,13 +1003,14 @@ sub do_methods {
     sub {
       my ($defn, $method, $args) = @_;
       die "Need github_url from --gihub_url option, or from arduino library.properties['url']" if !$defn->{'arduino'}->github_url;
+      my @argument_info = map { { name => $_->[0], type => $_->[1], type_name => $_->[2] } } @$args; # FIXME: use actual type
+      debug sub { "# args ".join(', ', map { dump_shallow($_) } @argument_info ); };
 
       return { method => {
+        argument_names => [ map { $_->[0] } @$args ],
         name => $method->{'name'},
         type => ($method->{'type'} eq 'TypeKind.VOID:-2' ? 'void' : $method->{'type_name'}),
-        arguments => [
-          map { { name => $_->[0], type => $_->[1], type_name => $_->[2] } } @$args # FIXME: use actual type
-          ],
+        arguments => \@argument_info, 
         }}
       },
  

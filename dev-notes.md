@@ -1,5 +1,7 @@
 # Dev-notes: Automatic Arduino Library to XOD library
 
+- [ ] --- config > should show deduced values
+- [ ] make -project the default
 - [ ] for args of `&` type, treat as return type and emit
 - [x] look at enums, arg type is just int
 -- [ ] make a patch with the descrption having all values?
