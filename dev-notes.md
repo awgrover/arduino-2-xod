@@ -1,19 +1,14 @@
 # Dev-notes: Automatic Arduino Library to XOD library
 
 - [ ] --- config > should show deduced values
-- [ ] make -project the default
 - [ ] for args of `&` type, treat as return type and emit
 - [x] look at enums, arg type is just int
 -- [ ] make a patch with the descrption having all values?
 - [ ] argument name collisions
     my default names: 'object', etc. can collide w/real args
     rename real args I guess?
-    cf visi-genie write-object
-    
+    cf visi-genie write-object   
 - [ ] rf24 has cdoc, can we extract as desc?
-- [ ] update readme, 
--- put neopixel in own
--- note .config
 - [ ] http://docs.platformio.org/en/latest/librarymanager/config.html
 -- possibly has repository.type=='git' && frameworks='arduino' &7 repository.url for real .git/code
 -- frameworks is string or array of string for list
