@@ -45,6 +45,7 @@ Setup:
   * edit that
   * delete `key:values` that look right (since they are getting deduced correctly)
   * figure out values that are wrong/incomplete
+  ** `libclang` will be deduced by `dump_ast.py`, so is `null` at the moment in this output.
 
 # Usage
 
