@@ -496,15 +496,14 @@ void evaluate(Context ctx) {
   auto _state = getState(ctx);
 
   // var names are valid c++ because we got them from the arglist of the c++ constructor
-  {% FOREACH arg = $constructor.arguments %}
-    auto {% arg.name %} = static_cast<{% arg.type_name %}> (getValue<input_{% arg.name %}>(ctx)); // {% arg.type_name %}
-  } 
-  {% END %}
+  {%- FOREACH arg = constructor.arguments %}
+  auto {% arg.name %} = static_cast<{% arg.type_name %}> (getValue<input_{% arg.name %}>(ctx)); // {% arg.type_name %}
+  {% END -%}
 
   Type object = new (_state->mem) {% arduino.class_name %}( {% constructor.argument_names.join(", ") %} );
 
   emitValue<output_{% cpp.cons_patch_name %}>(ctx, object);
-  emitValue<output_done>(ctx, object);
+  emitValue<output_done>(ctx, 1);
 }
 EOS
 
@@ -1244,8 +1243,10 @@ sub do_constructor {
       my ($defn, $constructor_ast, $args) = @_;
       die "Need github_url from --gihub_url option, or from arduino library.properties['url']" if !$defn->{'arduino'}->github_url;
 
+      debug sub { "Args ".Dumper( $args) };
+      debug sub { "Args ".Dumper( [ map { { name => $_->[0], type => $_->[1], type_name => $_->[2] } } @$args ] ); };
       return { constructor => {
-        argument_names => [ map { $_[0] } @$args],
+        argument_names => [ map { $_->[0] } @$args],
         arguments => [
           map { { name => $_->[0], type => $_->[1], type_name => $_->[2] } } @$args # FIXME: use actual type
           ],
