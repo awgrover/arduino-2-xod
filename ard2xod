@@ -754,7 +754,7 @@ sub foreach_method {
 
     my @inputs; # [ $name, $xodtypename, $actual-spelled-type ]
     my @saw = $method->{'text'} . "("; # for error message
-    #say "  --- args...";
+    debug sub { "  --- args... ".@$args_ast; };
     my $parm_ct = 0;
     foreach my $parm (@$args_ast) {
       $parm_ct += 1;
@@ -842,7 +842,8 @@ sub to_xod_type {
 sub do_ast {
   # just dump the ast
   # --- $ardlib
-  my ($ard) = @ARGV;
+  my ($arddir) = @ARGV;
+  my $ard = arduino_new($arddir);
   my $dot_h = $ard->dot_h;
   system("python", "./dump_ast.py", $dot_h);
   exit($?);
@@ -851,6 +852,7 @@ sub do_ast {
 sub do_properties {
   # Make public property patches
   # --- $ardlib $xodproject
+  die "not implemented";
 
   my ($ard,$xod) = @ARGV;
 
@@ -1243,7 +1245,6 @@ sub do_constructor {
       my ($defn, $constructor_ast, $args) = @_;
       die "Need github_url from --gihub_url option, or from arduino library.properties['url']" if !$defn->{'arduino'}->github_url;
 
-      debug sub { "Args ".Dumper( $args) };
       debug sub { "Args ".Dumper( [ map { { name => $_->[0], type => $_->[1], type_name => $_->[2] } } @$args ] ); };
       return { constructor => {
         argument_names => [ map { $_->[0] } @$args],
@@ -1438,7 +1439,8 @@ sub do_library {
     # --- $ardlib # > xod_libraries/$author/$arddir
 
     my $any;
-    foreach my $ard (@ARGV) { 
+    foreach my $arddir (@ARGV) { 
+      my $ard = arduino_new($arddir);
       _do_library($ard);
       $any = 1;
       }
